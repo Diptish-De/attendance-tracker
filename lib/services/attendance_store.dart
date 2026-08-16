@@ -1,13 +1,16 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
 
 class AttendanceDataStore extends ChangeNotifier {
   static final AttendanceDataStore _instance = AttendanceDataStore._internal();
   factory AttendanceDataStore() => _instance;
   AttendanceDataStore._internal() {
-    _initDefaultData();
+    _loadFromPreferences();
   }
 
+  bool isDarkMode = false;
   String studentName = 'Arjun';
   String degree = 'B.Tech CSE · Semester 3';
   int streakDays = 12;
@@ -24,102 +27,125 @@ class AttendanceDataStore extends ChangeNotifier {
   List<RoutineSlot> routine = [];
   List<SubjectMarks> marks = [];
 
-  void _initDefaultData() {
+  Future<void> _loadFromPreferences() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      isDarkMode = prefs.getBool('isDarkMode') ?? false;
+      studentName = prefs.getString('studentName') ?? 'Arjun';
+      degree = prefs.getString('degree') ?? 'B.Tech CSE · Semester 3';
+      streakDays = prefs.getInt('streakDays') ?? 12;
+
+      final subjectsJson = prefs.getString('subjects');
+      if (subjectsJson != null) {
+        final List list = jsonDecode(subjectsJson);
+        subjects = list.map((e) => Subject.fromJson(e)).toList();
+      } else {
+        _initDefaultSubjects();
+      }
+
+      final routineJson = prefs.getString('routine');
+      if (routineJson != null) {
+        final List list = jsonDecode(routineJson);
+        routine = list.map((e) => RoutineSlot.fromJson(e)).toList();
+      } else {
+        _initDefaultRoutine();
+      }
+
+      final marksJson = prefs.getString('marks');
+      if (marksJson != null) {
+        final List list = jsonDecode(marksJson);
+        marks = list.map((e) => SubjectMarks.fromJson(e)).toList();
+      } else {
+        _initDefaultMarks();
+      }
+
+      final achievementsJson = prefs.getString('achievements');
+      if (achievementsJson != null) {
+        final List list = jsonDecode(achievementsJson);
+        achievements = list.map((e) => Achievement.fromJson(e)).toList();
+      } else {
+        _initDefaultAchievements();
+      }
+
+      final leavesJson = prefs.getString('leaves');
+      if (leavesJson != null) {
+        final List list = jsonDecode(leavesJson);
+        leaveHistory = list.map((e) => LeaveItem.fromJson(e)).toList();
+      } else {
+        _initDefaultLeaves();
+      }
+
+      final leaveCatJson = prefs.getString('leaveCategories');
+      if (leaveCatJson != null) {
+        final List list = jsonDecode(leaveCatJson);
+        leaveCategories = list.map((e) => LeaveCategory.fromJson(e)).toList();
+      } else {
+        _initDefaultLeaveCategories();
+      }
+    } catch (e) {
+      _initAllDefaults();
+    }
+    notifyListeners();
+  }
+
+  Future<void> saveToPreferences() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isDarkMode', isDarkMode);
+      await prefs.setString('studentName', studentName);
+      await prefs.setString('degree', degree);
+      await prefs.setInt('streakDays', streakDays);
+      await prefs.setString('subjects', jsonEncode(subjects.map((s) => s.toJson()).toList()));
+      await prefs.setString('routine', jsonEncode(routine.map((r) => r.toJson()).toList()));
+      await prefs.setString('marks', jsonEncode(marks.map((m) => m.toJson()).toList()));
+      await prefs.setString('achievements', jsonEncode(achievements.map((a) => a.toJson()).toList()));
+      await prefs.setString('leaves', jsonEncode(leaveHistory.map((l) => l.toJson()).toList()));
+      await prefs.setString('leaveCategories', jsonEncode(leaveCategories.map((c) => c.toJson()).toList()));
+    } catch (_) {}
+  }
+
+  void toggleTheme() {
+    isDarkMode = !isDarkMode;
+    saveToPreferences();
+    notifyListeners();
+  }
+
+  void _initAllDefaults() {
+    _initDefaultSubjects();
+    _initDefaultRoutine();
+    _initDefaultMarks();
+    _initDefaultAchievements();
+    _initDefaultLeaves();
+    _initDefaultLeaveCategories();
+  }
+
+  void _initDefaultSubjects() {
     subjects = [
-      Subject(
-        id: 'dsa',
-        name: 'DSA',
-        icon: '🌐',
-        faculty: 'Prof. Sharma',
-        attended: 34,
-        total: 40,
-        history: [
-          AttendanceRecord(date: 'Aug 14, 2026', status: 'present'),
-          AttendanceRecord(date: 'Aug 13, 2026', status: 'present'),
-          AttendanceRecord(date: 'Aug 12, 2026', status: 'absent'),
-          AttendanceRecord(date: 'Aug 09, 2026', status: 'present'),
-        ],
-      ),
-      Subject(
-        id: 'oop',
-        name: 'OOP',
-        icon: '🧩',
-        faculty: 'Dr. Mehta',
-        attended: 28,
-        total: 37,
-        history: [
-          AttendanceRecord(date: 'Aug 14, 2026', status: 'present'),
-          AttendanceRecord(date: 'Aug 11, 2026', status: 'present'),
-        ],
-      ),
-      Subject(
-        id: 'dm',
-        name: 'DM',
-        icon: '∑',
-        faculty: 'Prof. Gupta',
-        attended: 29,
-        total: 33,
-      ),
-      Subject(
-        id: 'dsco',
-        name: 'DSCO',
-        icon: '⚙️',
-        faculty: 'Dr. Verma',
-        attended: 17,
-        total: 23,
-      ),
-      Subject(
-        id: 'dbms',
-        name: 'DBMS',
-        icon: '🗄️',
-        faculty: 'Dr. Nair',
-        attended: 15,
-        total: 22,
-      ),
+      Subject(id: 'dsa', name: 'DSA', icon: '🌐', faculty: 'Prof. Sharma', attended: 34, total: 40, minRequiredPercentage: 75),
+      Subject(id: 'oop', name: 'OOP', icon: '🧩', faculty: 'Dr. Mehta', attended: 28, total: 37, minRequiredPercentage: 75),
+      Subject(id: 'dm', name: 'DM', icon: '∑', faculty: 'Prof. Gupta', attended: 29, total: 33, minRequiredPercentage: 75),
+      Subject(id: 'dsco', name: 'DSCO', icon: '⚙️', faculty: 'Dr. Verma', attended: 17, total: 23, minRequiredPercentage: 75),
+      Subject(id: 'dbms', name: 'DBMS', icon: '🗄️', faculty: 'Dr. Nair', attended: 15, total: 22, minRequiredPercentage: 75),
     ];
+  }
 
-    achievements = [
-      Achievement(id: 'lab', icon: '🔬', title: 'Lab Guardian', desc: '100% lab attendance', unlocked: true),
-      Achievement(id: 'week', icon: '⚡', title: 'Perfect Week', desc: 'All classes for one week', unlocked: true),
-      Achievement(id: 'bunker', icon: '🎯', title: 'Pro Bunker', desc: 'Maintain 75%+ all semester', unlocked: false),
-      Achievement(id: 'recovery', icon: '💪', title: 'Recovery Master', desc: 'Recovered from below 70%', unlocked: false),
-      Achievement(id: 'streak', icon: '🔥', title: '10-Day Streak', desc: '10 days attended consecutively', unlocked: true),
-      Achievement(id: 'ghost', icon: '👻', title: 'Ghost Mode', desc: '5 strategic skips in a week', unlocked: false),
-    ];
-
-    leaveCategories = [
-      LeaveCategory(name: 'Annual Leave', icon: '🌴', available: 12, used: 3, total: 15),
-      LeaveCategory(name: 'Casual Leave', icon: '☕', available: 6, used: 4, total: 10),
-      LeaveCategory(name: 'Sick Leave', icon: '🩺', available: 5, used: 5, total: 10),
-      LeaveCategory(name: 'Medical Leave', icon: '💊', available: 4, used: 6, total: 10),
-    ];
-
-    leaveHistory = [
-      LeaveItem(id: 1, type: 'Annual Leave', dates: 'May 05 – May 07, 2026', days: 3, status: 'Approved'),
-      LeaveItem(id: 2, type: 'Sick Leave', dates: 'Apr 21, 2026', days: 1, status: 'Pending'),
-      LeaveItem(id: 3, type: 'Casual Leave', dates: 'Mar 14, 2026', days: 2, status: 'Approved'),
-    ];
-
-    // Initial Weekly Timetable / Routine Slots
+  void _initDefaultRoutine() {
     routine = [
       RoutineSlot(id: 'r1', day: 'Monday', subjectName: 'DSA', subjectId: 'dsa', startTime: '09:00 AM', endTime: '10:00 AM', room: 'LH-101', faculty: 'Prof. Sharma'),
       RoutineSlot(id: 'r2', day: 'Monday', subjectName: 'OOP', subjectId: 'oop', startTime: '10:15 AM', endTime: '11:15 AM', room: 'Lab-2', faculty: 'Dr. Mehta'),
       RoutineSlot(id: 'r3', day: 'Monday', subjectName: 'DBMS', subjectId: 'dbms', startTime: '11:30 AM', endTime: '12:30 PM', room: 'LH-104', faculty: 'Dr. Nair'),
-      
       RoutineSlot(id: 'r4', day: 'Tuesday', subjectName: 'DM', subjectId: 'dm', startTime: '09:30 AM', endTime: '10:30 AM', room: 'LH-102', faculty: 'Prof. Gupta'),
       RoutineSlot(id: 'r5', day: 'Tuesday', subjectName: 'DSCO', subjectId: 'dsco', startTime: '11:00 AM', endTime: '12:00 PM', room: 'LH-105', faculty: 'Dr. Verma'),
-      
       RoutineSlot(id: 'r6', day: 'Wednesday', subjectName: 'DSA', subjectId: 'dsa', startTime: '10:00 AM', endTime: '11:00 AM', room: 'LH-101', faculty: 'Prof. Sharma'),
       RoutineSlot(id: 'r7', day: 'Wednesday', subjectName: 'OOP', subjectId: 'oop', startTime: '02:00 PM', endTime: '04:00 PM', room: 'Computing Lab', faculty: 'Dr. Mehta'),
-      
       RoutineSlot(id: 'r8', day: 'Thursday', subjectName: 'DM', subjectId: 'dm', startTime: '09:00 AM', endTime: '10:00 AM', room: 'LH-102', faculty: 'Prof. Gupta'),
       RoutineSlot(id: 'r9', day: 'Thursday', subjectName: 'DBMS', subjectId: 'dbms', startTime: '10:15 AM', endTime: '11:15 AM', room: 'LH-104', faculty: 'Dr. Nair'),
-      
       RoutineSlot(id: 'r10', day: 'Friday', subjectName: 'DSCO', subjectId: 'dsco', startTime: '09:00 AM', endTime: '10:00 AM', room: 'LH-105', faculty: 'Dr. Verma'),
       RoutineSlot(id: 'r11', day: 'Friday', subjectName: 'DSA', subjectId: 'dsa', startTime: '11:15 AM', endTime: '12:15 PM', room: 'LH-101', faculty: 'Prof. Sharma'),
     ];
+  }
 
-    // Initial Internal & Semester Marks
+  void _initDefaultMarks() {
     marks = [
       SubjectMarks(subjectId: 'dsa', subjectName: 'DSA', internal1: 22, internal2: 24, assignment: 9, endSem: 88, credits: 4),
       SubjectMarks(subjectId: 'oop', subjectName: 'OOP', internal1: 20, internal2: 22, assignment: 8.5, endSem: 82, credits: 4),
@@ -129,9 +155,43 @@ class AttendanceDataStore extends ChangeNotifier {
     ];
   }
 
-  // ─── Routine Methods ────────────────────────────────────────────────────────
+  void _initDefaultAchievements() {
+    achievements = [
+      Achievement(id: 'lab', icon: '🔬', title: 'Lab Guardian', desc: '100% lab attendance', unlocked: true),
+      Achievement(id: 'week', icon: '⚡', title: 'Perfect Week', desc: 'All classes for one week', unlocked: true),
+      Achievement(id: 'bunker', icon: '🎯', title: 'Pro Bunker', desc: 'Maintain 75%+ all semester', unlocked: false),
+      Achievement(id: 'recovery', icon: '💪', title: 'Recovery Master', desc: 'Recovered from below 70%', unlocked: false),
+      Achievement(id: 'streak', icon: '🔥', title: '10-Day Streak', desc: '10 days attended consecutively', unlocked: true),
+      Achievement(id: 'ghost', icon: '👻', title: 'Ghost Mode', desc: '5 strategic skips in a week', unlocked: false),
+    ];
+  }
+
+  void _initDefaultLeaves() {
+    leaveHistory = [
+      LeaveItem(id: 1, type: 'Annual Leave', dates: 'May 05 – May 07, 2026', days: 3, status: 'Approved'),
+      LeaveItem(id: 2, type: 'Sick Leave', dates: 'Apr 21, 2026', days: 1, status: 'Pending'),
+      LeaveItem(id: 3, type: 'Casual Leave', dates: 'Mar 14, 2026', days: 2, status: 'Approved'),
+    ];
+  }
+
+  void _initDefaultLeaveCategories() {
+    leaveCategories = [
+      LeaveCategory(name: 'Annual Leave', icon: '🌴', available: 12, used: 3, total: 15),
+      LeaveCategory(name: 'Casual Leave', icon: '☕', available: 6, used: 4, total: 10),
+      LeaveCategory(name: 'Sick Leave', icon: '🩺', available: 5, used: 5, total: 10),
+      LeaveCategory(name: 'Medical Leave', icon: '💊', available: 4, used: 6, total: 10),
+    ];
+  }
+
+  // Routine Methods
   List<RoutineSlot> getRoutineForDay(String day) {
     return routine.where((r) => r.day.toLowerCase() == day.toLowerCase()).toList();
+  }
+
+  List<RoutineSlot> getTodayRoutine() {
+    final days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final today = days[DateTime.now().weekday - 1];
+    return getRoutineForDay(today);
   }
 
   void addRoutineSlot(String day, String subjectName, String startTime, String endTime, String room, String faculty) {
@@ -147,15 +207,17 @@ class AttendanceDataStore extends ChangeNotifier {
       room: room,
       faculty: faculty,
     ));
+    saveToPreferences();
     notifyListeners();
   }
 
   void deleteRoutineSlot(String slotId) {
     routine.removeWhere((r) => r.id == slotId);
+    saveToPreferences();
     notifyListeners();
   }
 
-  // ─── Marks Methods ──────────────────────────────────────────────────────────
+  // Marks Methods
   double get cumulativeGPA {
     if (marks.isEmpty) return 0.0;
     double totalPoints = 0.0;
@@ -197,10 +259,21 @@ class AttendanceDataStore extends ChangeNotifier {
         endSem: endSem,
       ));
     }
+    saveToPreferences();
     notifyListeners();
   }
 
-  // ─── Calculations & Actions ─────────────────────────────────────────────────
+  // Target Criteria Modification per Subject
+  void updateSubjectTarget(String subjectId, double newTarget) {
+    final s = subjects.where((sub) => sub.id == subjectId).firstOrNull;
+    if (s != null) {
+      s.minRequiredPercentage = newTarget;
+      saveToPreferences();
+      notifyListeners();
+    }
+  }
+
+  // Calculations & Actions
   int get teachingDaysLeft {
     final now = DateTime.now();
     if (now.isAfter(semesterEndDate)) return 0;
@@ -251,21 +324,28 @@ class AttendanceDataStore extends ChangeNotifier {
   void updateProfile(String name, String deg) {
     studentName = name;
     degree = deg;
+    saveToPreferences();
     notifyListeners();
   }
 
   void markPresent(String subjectId, String date) {
-    final s = subjects.firstWhere((item) => item.id == subjectId);
-    s.markPresent(date);
-    streakDays += 1;
-    _checkAchievements();
-    notifyListeners();
+    final s = subjects.where((item) => item.id == subjectId).firstOrNull;
+    if (s != null) {
+      s.markPresent(date);
+      streakDays += 1;
+      _checkAchievements();
+      saveToPreferences();
+      notifyListeners();
+    }
   }
 
   void markAbsent(String subjectId, String date) {
-    final s = subjects.firstWhere((item) => item.id == subjectId);
-    s.markAbsent(date);
-    notifyListeners();
+    final s = subjects.where((item) => item.id == subjectId).firstOrNull;
+    if (s != null) {
+      s.markAbsent(date);
+      saveToPreferences();
+      notifyListeners();
+    }
   }
 
   void addSubject(String name, String faculty, String icon, int attended, int total, double minReq) {
@@ -281,6 +361,7 @@ class AttendanceDataStore extends ChangeNotifier {
     ));
     marks.add(SubjectMarks(subjectId: id, subjectName: name));
     _checkAchievements();
+    saveToPreferences();
     notifyListeners();
   }
 
@@ -288,6 +369,7 @@ class AttendanceDataStore extends ChangeNotifier {
     subjects.removeWhere((s) => s.id == subjectId);
     marks.removeWhere((m) => m.subjectId == subjectId);
     routine.removeWhere((r) => r.subjectId == subjectId);
+    saveToPreferences();
     notifyListeners();
   }
 
@@ -309,13 +391,15 @@ class AttendanceDataStore extends ChangeNotifier {
       leaveCategories[catIndex].available = (leaveCategories[catIndex].available - days).clamp(0, leaveCategories[catIndex].total);
       leaveCategories[catIndex].used += days;
     }
+    saveToPreferences();
     notifyListeners();
   }
 
   void unlockAchievement(String id) {
-    final target = achievements.firstWhere((a) => a.id == id);
-    if (!target.unlocked) {
+    final target = achievements.where((a) => a.id == id).firstOrNull;
+    if (target != null && !target.unlocked) {
       target.unlocked = true;
+      saveToPreferences();
       notifyListeners();
     }
   }

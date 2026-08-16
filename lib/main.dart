@@ -15,22 +15,49 @@ void main() {
   runApp(const BunkQuestApp());
 }
 
-class BunkQuestApp extends StatelessWidget {
+class BunkQuestApp extends StatefulWidget {
   const BunkQuestApp({super.key});
+
+  @override
+  State<BunkQuestApp> createState() => _BunkQuestAppState();
+}
+
+class _BunkQuestAppState extends State<BunkQuestApp> {
+  final AttendanceDataStore _store = AttendanceDataStore();
+
+  @override
+  void initState() {
+    super.initState();
+    _store.addListener(() => setState(() {}));
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'BunkQuest - Attendance & Academic OS',
       debugShowCheckedModeBanner: false,
+      themeMode: _store.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
         useMaterial3: true,
+        brightness: Brightness.light,
         scaffoldBackgroundColor: AppColors.background,
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primary,
           surface: Colors.white,
+          brightness: Brightness.light,
         ),
         textTheme: GoogleFonts.nunitoTextTheme(),
+      ),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF0F172A),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          surface: const Color(0xFF1E293B),
+          brightness: Brightness.dark,
+        ),
+        textTheme: GoogleFonts.nunitoTextTheme(ThemeData.dark().textTheme),
       ),
       home: const MainNavigationScreen(),
     );
@@ -160,42 +187,47 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => Padding(
+      builder: (context) => Container(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75),
         padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '🔔 Smart Alerts',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 14),
-            ...alerts.map((a) => Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: a['bg'] as Color,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border(left: BorderSide(color: a['color'] as Color, width: 4)),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(a['icon'] as String, style: const TextStyle(fontSize: 18)),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          a['text'] as String,
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '🔔 Smart Alerts',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 14),
+              ...alerts.map((a) => Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: a['bg'] as Color,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border(left: BorderSide(color: a['color'] as Color, width: 4)),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(a['icon'] as String, style: const TextStyle(fontSize: 18)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            a['text'] as String,
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                )),
-          ],
+                      ],
+                    ),
+                  )),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );
@@ -207,6 +239,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       DashboardScreen(
         store: _store,
         onSeeAllSubjects: () => setState(() => _currentIndex = 1),
+        onSeeAllRoutine: () => setState(() => _currentIndex = 2),
         onShowNotifications: _showNotificationsModal,
         onShowStreak: _showStreakDialog,
         onSelectSubject: _onSelectSubjectFromDashboard,

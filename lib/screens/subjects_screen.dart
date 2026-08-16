@@ -453,6 +453,13 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                           },
                         ),
                         _buildActionButton(
+                          'Target: ${s.minRequiredPercentage.round()}%',
+                          Icons.tune_rounded,
+                          const Color(0xFF3B82F6),
+                          const Color(0xFFDBEAFE),
+                          () => _showEditTargetDialog(context, s),
+                        ),
+                        _buildActionButton(
                           'Simulate Skip',
                           Icons.insights_rounded,
                           AppColors.danger,
@@ -649,6 +656,60 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                   ),
                 );
               }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditTargetDialog(BuildContext context, Subject s) {
+    double currentTarget = s.minRequiredPercentage;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text('Target Criteria: ${s.name}', style: const TextStyle(fontWeight: FontWeight.w900)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Set the minimum required percentage for this subject. Safe skips will be recalculated based on this goal.',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '${currentTarget.round()}%',
+                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppColors.primary),
+              ),
+              Slider(
+                value: currentTarget,
+                min: 50,
+                max: 95,
+                divisions: 9,
+                activeColor: AppColors.primary,
+                onChanged: (val) => setModalState(() => currentTarget = val),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () {
+                widget.store.updateSubjectTarget(s.id, currentTarget);
+                Navigator.pop(ctx);
+                setState(() {});
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Target criteria for ${s.name} updated to ${currentTarget.round()}%'),
+                    backgroundColor: AppColors.safe,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              child: const Text('Save Target', style: TextStyle(color: Colors.white)),
+            ),
           ],
         ),
       ),

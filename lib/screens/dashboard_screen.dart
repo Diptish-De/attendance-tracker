@@ -7,6 +7,7 @@ import '../widgets/painters.dart';
 class DashboardScreen extends StatelessWidget {
   final AttendanceDataStore store;
   final VoidCallback onSeeAllSubjects;
+  final VoidCallback onSeeAllRoutine;
   final VoidCallback onShowNotifications;
   final VoidCallback onShowStreak;
   final Function(String subjectId) onSelectSubject;
@@ -15,6 +16,7 @@ class DashboardScreen extends StatelessWidget {
     super.key,
     required this.store,
     required this.onSeeAllSubjects,
+    required this.onSeeAllRoutine,
     required this.onShowNotifications,
     required this.onShowStreak,
     required this.onSelectSubject,
@@ -26,6 +28,8 @@ class DashboardScreen extends StatelessWidget {
     final totalSkips = store.totalSafeSkips;
     final overallRisk = store.overallRisk;
     final subjects = store.subjects;
+    final todayRoutine = store.getTodayRoutine();
+    final todayStr = _formatDate(DateTime.now());
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -80,37 +84,56 @@ class DashboardScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    IconButton(
-                      onPressed: onShowNotifications,
-                      icon: Stack(
-                        children: [
-                          Container(
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: () => store.toggleTheme(),
+                          icon: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
                               color: Color(0xFFF1F5F9),
                             ),
-                            child: const Icon(
-                              Icons.notifications_none_rounded,
-                              color: Color(0xFF64748B),
-                              size: 22,
+                            child: Icon(
+                              store.isDarkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                              color: const Color(0xFF64748B),
+                              size: 20,
                             ),
                           ),
-                          Positioned(
-                            top: 2,
-                            right: 2,
-                            child: Container(
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        IconButton(
+                          onPressed: onShowNotifications,
+                          icon: Stack(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Color(0xFFF1F5F9),
+                                ),
+                                child: const Icon(
+                                  Icons.notifications_none_rounded,
+                                  color: Color(0xFF64748B),
+                                  size: 20,
+                                ),
                               ),
-                            ),
+                              Positioned(
+                                top: 2,
+                                right: 2,
+                                child: Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -196,7 +219,7 @@ class DashboardScreen extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 4),
                                     const Text(
-                                      'University Criterion: 75%',
+                                      'Target: 75%',
                                       style: TextStyle(
                                         fontSize: 10,
                                         color: AppColors.textSecondary,
@@ -282,7 +305,140 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 18),
+
+                    // ─── Today's Routine & 1-Tap Attendance Widget ───────────
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Today's Schedule & Quick Attendance",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: onSeeAllRoutine,
+                          child: const Text(
+                            'Routine',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+
+                    if (todayRoutine.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Row(
+                          children: [
+                            Text('🏖️', style: TextStyle(fontSize: 24)),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'No classes scheduled for today! Enjoy your holiday.',
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      Column(
+                        children: todayRoutine.map((slot) {
+                          final sub = store.subjects.where((s) => s.id == slot.subjectId || s.name.toLowerCase() == slot.subjectName.toLowerCase()).firstOrNull;
+
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                )
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.safeBg,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Center(
+                                    child: Text(sub?.icon ?? '📚', style: const TextStyle(fontSize: 20)),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        slot.subjectName,
+                                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                                      ),
+                                      Text(
+                                        '${slot.startTime} · ${slot.room}',
+                                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (sub != null) ...[
+                                  IconButton(
+                                    icon: const Icon(Icons.check_circle_rounded, color: AppColors.safe, size: 28),
+                                    tooltip: 'Mark Attended',
+                                    onPressed: () {
+                                      store.markPresent(sub.id, todayStr);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Marked ${sub.name} as Present ✓'),
+                                          backgroundColor: AppColors.safe,
+                                          duration: const Duration(seconds: 2),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.cancel_rounded, color: AppColors.critical, size: 28),
+                                    tooltip: 'Mark Bunked',
+                                    onPressed: () {
+                                      store.markAbsent(sub.id, todayStr);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Marked ${sub.name} as Absent ✗'),
+                                          backgroundColor: AppColors.critical,
+                                          duration: const Duration(seconds: 2),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+
+                    const SizedBox(height: 18),
 
                     // Subject Overview Header
                     Row(
@@ -291,8 +447,8 @@ class DashboardScreen extends StatelessWidget {
                         const Text(
                           'Subject Overview',
                           style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
                             color: AppColors.textPrimary,
                           ),
                         ),
@@ -301,7 +457,7 @@ class DashboardScreen extends StatelessWidget {
                           child: const Text(
                             'See All',
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: 12,
                               fontWeight: FontWeight.w700,
                               color: AppColors.primary,
                             ),
@@ -515,5 +671,10 @@ class DashboardScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _formatDate(DateTime dt) {
+    final months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
   }
 }
