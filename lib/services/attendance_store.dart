@@ -194,7 +194,7 @@ class AttendanceDataStore extends ChangeNotifier {
     return getRoutineForDay(today);
   }
 
-  void addRoutineSlot(String day, String subjectName, String startTime, String endTime, String room, String faculty) {
+  void addRoutineSlot(String day, String subjectName, String startTime, String endTime, String room, String faculty, {int periodsCount = 1}) {
     final s = subjects.where((sub) => sub.name.toLowerCase() == subjectName.toLowerCase()).firstOrNull;
     final subjectId = s?.id ?? subjectName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
     routine.add(RoutineSlot(
@@ -206,6 +206,7 @@ class AttendanceDataStore extends ChangeNotifier {
       endTime: endTime,
       room: room,
       faculty: faculty,
+      periodsCount: periodsCount,
     ));
     saveToPreferences();
     notifyListeners();
@@ -328,10 +329,10 @@ class AttendanceDataStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  void markPresent(String subjectId, String date) {
+  void markPresent(String subjectId, String date, {int count = 1}) {
     final s = subjects.where((item) => item.id == subjectId).firstOrNull;
     if (s != null) {
-      s.markPresent(date);
+      s.markPresent(date, count: count);
       streakDays += 1;
       _checkAchievements();
       saveToPreferences();
@@ -339,10 +340,10 @@ class AttendanceDataStore extends ChangeNotifier {
     }
   }
 
-  void markAbsent(String subjectId, String date) {
+  void markAbsent(String subjectId, String date, {int count = 1}) {
     final s = subjects.where((item) => item.id == subjectId).firstOrNull;
     if (s != null) {
-      s.markAbsent(date);
+      s.markAbsent(date, count: count);
       saveToPreferences();
       notifyListeners();
     }

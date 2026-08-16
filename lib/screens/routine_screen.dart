@@ -212,6 +212,22 @@ class _RoutineScreenState extends State<RoutineScreen> {
                                     const SizedBox(height: 4),
                                     Row(
                                       children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: slot.periodsCount > 1 ? const Color(0xFFFEF3C7) : const Color(0xFFF1F5F9),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            '${slot.periodsCount} Period${slot.periodsCount > 1 ? 's (Double Class)' : ''}',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w800,
+                                              color: slot.periodsCount > 1 ? const Color(0xFFD97706) : AppColors.textPrimary,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
                                         if (slot.room.isNotEmpty) ...[
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -268,6 +284,7 @@ class _RoutineScreenState extends State<RoutineScreen> {
     final endCtrl = TextEditingController(text: '10:00 AM');
     final roomCtrl = TextEditingController(text: 'LH-101');
     final facultyCtrl = TextEditingController();
+    int selectedPeriodsCount = 1;
 
     showDialog(
       context: context,
@@ -294,6 +311,20 @@ class _RoutineScreenState extends State<RoutineScreen> {
                   items: widget.store.subjects.map((s) => DropdownMenuItem(value: s.name, child: Text(s.name))).toList(),
                   onChanged: (val) {
                     if (val != null) setModalState(() => selectedSubjectName = val);
+                  },
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<int>(
+                  value: selectedPeriodsCount,
+                  decoration: const InputDecoration(labelText: 'No. of Periods / Attendance Weight'),
+                  items: const [
+                    DropdownMenuItem(value: 1, child: Text('1 Period (Single Lecture)')),
+                    DropdownMenuItem(value: 2, child: Text('2 Periods (Double Class / Lab)')),
+                    DropdownMenuItem(value: 3, child: Text('3 Periods (Continuous Workshop)')),
+                    DropdownMenuItem(value: 4, child: Text('4 Periods (Extended Lab)')),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) setModalState(() => selectedPeriodsCount = val);
                   },
                 ),
                 const SizedBox(height: 8),
@@ -339,12 +370,13 @@ class _RoutineScreenState extends State<RoutineScreen> {
                     endCtrl.text.trim(),
                     roomCtrl.text.trim(),
                     facultyCtrl.text.trim(),
+                    periodsCount: selectedPeriodsCount,
                   );
                   Navigator.pop(ctx);
                   setState(() {});
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Added $selectedSubjectName to $selectedDay routine!'),
+                      content: Text('Added $selectedSubjectName ($selectedPeriodsCount periods) to $selectedDay routine!'),
                       backgroundColor: AppColors.safe,
                     ),
                   );

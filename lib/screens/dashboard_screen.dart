@@ -510,9 +510,31 @@ class DashboardScreen extends StatelessWidget {
                                         slot.subjectName,
                                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
                                       ),
-                                      Text(
-                                        '${slot.startTime} · ${slot.room}',
-                                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            '${slot.startTime} · ${slot.room}',
+                                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                          ),
+                                          if (slot.periodsCount > 1) ...[
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFFEF3C7),
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                '${slot.periodsCount} Periods',
+                                                style: const TextStyle(
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: Color(0xFFD97706),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
                                       ),
                                     ],
                                   ),
@@ -520,12 +542,12 @@ class DashboardScreen extends StatelessWidget {
                                 if (sub != null) ...[
                                   IconButton(
                                     icon: const Icon(Icons.check_circle_rounded, color: AppColors.safe, size: 28),
-                                    tooltip: 'Mark Attended',
+                                    tooltip: 'Mark Attended (${slot.periodsCount} period${slot.periodsCount > 1 ? 's' : ''})',
                                     onPressed: () {
-                                      store.markPresent(sub.id, todayStr);
+                                      store.markPresent(sub.id, todayStr, count: slot.periodsCount);
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                          content: Text('Marked ${sub.name} as Present ✓'),
+                                          content: Text('Marked ${sub.name} (+${slot.periodsCount} periods) as Present ✓'),
                                           backgroundColor: AppColors.safe,
                                           duration: const Duration(seconds: 2),
                                         ),
@@ -534,12 +556,12 @@ class DashboardScreen extends StatelessWidget {
                                   ),
                                   IconButton(
                                     icon: const Icon(Icons.cancel_rounded, color: AppColors.critical, size: 28),
-                                    tooltip: 'Mark Bunked',
+                                    tooltip: 'Mark Bunked (${slot.periodsCount} period${slot.periodsCount > 1 ? 's' : ''})',
                                     onPressed: () {
-                                      store.markAbsent(sub.id, todayStr);
+                                      store.markAbsent(sub.id, todayStr, count: slot.periodsCount);
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                          content: Text('Marked ${sub.name} as Absent ✗'),
+                                          content: Text('Marked ${sub.name} (+${slot.periodsCount} periods) as Absent ✗'),
                                           backgroundColor: AppColors.critical,
                                           duration: const Duration(seconds: 2),
                                         ),

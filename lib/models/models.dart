@@ -22,6 +22,7 @@ class RoutineSlot {
   final String endTime;   // '10:00 AM'
   final String room;
   final String faculty;
+  final int periodsCount; // e.g. 1 period (theory) or 2/3 periods (lab / double lecture)
 
   RoutineSlot({
     required this.id,
@@ -32,6 +33,7 @@ class RoutineSlot {
     required this.endTime,
     required this.room,
     required this.faculty,
+    this.periodsCount = 1,
   });
 
   Map<String, dynamic> toJson() => {
@@ -43,6 +45,7 @@ class RoutineSlot {
         'endTime': endTime,
         'room': room,
         'faculty': faculty,
+        'periodsCount': periodsCount,
       };
 
   factory RoutineSlot.fromJson(Map<String, dynamic> json) => RoutineSlot(
@@ -54,6 +57,7 @@ class RoutineSlot {
         endTime: json['endTime'] ?? '10:00 AM',
         room: json['room'] ?? '',
         faculty: json['faculty'] ?? '',
+        periodsCount: json['periodsCount'] ?? 1,
       );
 }
 
@@ -191,15 +195,23 @@ class Subject {
     return needed > 0 ? needed : 0;
   }
 
-  void markPresent(String date) {
-    attended += 1;
-    total += 1;
-    history.insert(0, AttendanceRecord(date: date, status: 'present'));
+  void markPresent(String date, {int count = 1}) {
+    attended += count;
+    total += count;
+    history.insert(
+        0,
+        AttendanceRecord(
+            date: count > 1 ? '$date ($count periods)' : date,
+            status: 'present'));
   }
 
-  void markAbsent(String date) {
-    total += 1;
-    history.insert(0, AttendanceRecord(date: date, status: 'absent'));
+  void markAbsent(String date, {int count = 1}) {
+    total += count;
+    history.insert(
+        0,
+        AttendanceRecord(
+            date: count > 1 ? '$date ($count periods)' : date,
+            status: 'absent'));
   }
 
   Map<String, dynamic> toJson() => {
