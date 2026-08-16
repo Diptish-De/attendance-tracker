@@ -12,6 +12,111 @@ class AttendanceRecord {
       AttendanceRecord(date: json['date'], status: json['status']);
 }
 
+// ─── Routine / Timetable Model ────────────────────────────────────────────────
+class RoutineSlot {
+  final String id;
+  final String day; // 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
+  final String subjectName;
+  final String subjectId;
+  final String startTime; // '09:00 AM'
+  final String endTime;   // '10:00 AM'
+  final String room;
+  final String faculty;
+
+  RoutineSlot({
+    required this.id,
+    required this.day,
+    required this.subjectName,
+    required this.subjectId,
+    required this.startTime,
+    required this.endTime,
+    required this.room,
+    required this.faculty,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'day': day,
+        'subjectName': subjectName,
+        'subjectId': subjectId,
+        'startTime': startTime,
+        'endTime': endTime,
+        'room': room,
+        'faculty': faculty,
+      };
+
+  factory RoutineSlot.fromJson(Map<String, dynamic> json) => RoutineSlot(
+        id: json['id'],
+        day: json['day'],
+        subjectName: json['subjectName'],
+        subjectId: json['subjectId'],
+        startTime: json['startTime'],
+        endTime: json['endTime'],
+        room: json['room'] ?? '',
+        faculty: json['faculty'] ?? '',
+      );
+}
+
+// ─── Marks Model (Internal + End-Sem) ─────────────────────────────────────────
+class SubjectMarks {
+  final String subjectId;
+  final String subjectName;
+  double? internal1;    // e.g. Mid-term 1 out of 25 / 30
+  double? internal1Max;
+  double? internal2;    // e.g. Mid-term 2
+  double? internal2Max;
+  double? assignment;   // e.g. Assignment / Quiz out of 10 / 20
+  double? assignmentMax;
+  double? endSem;       // Final Semester Exam
+  double? endSemMax;
+  int credits;
+
+  SubjectMarks({
+    required this.subjectId,
+    required this.subjectName,
+    this.internal1,
+    this.internal1Max = 25,
+    this.internal2,
+    this.internal2Max = 25,
+    this.assignment,
+    this.assignmentMax = 10,
+    this.endSem,
+    this.endSemMax = 100,
+    this.credits = 4,
+  });
+
+  double get totalObtained =>
+      (internal1 ?? 0) + (internal2 ?? 0) + (assignment ?? 0) + (endSem ?? 0);
+
+  double get totalMax =>
+      (internal1Max ?? 25) + (internal2Max ?? 25) + (assignmentMax ?? 10) + (endSemMax ?? 100);
+
+  double get percentage =>
+      totalMax == 0 ? 0 : ((totalObtained / totalMax) * 100);
+
+  String get grade {
+    final p = percentage;
+    if (p >= 90) return 'O (Outstanding)';
+    if (p >= 80) return 'A+ (Excellent)';
+    if (p >= 70) return 'A (Very Good)';
+    if (p >= 60) return 'B+ (Good)';
+    if (p >= 50) return 'B (Average)';
+    if (p >= 40) return 'P (Pass)';
+    return 'F (Fail)';
+  }
+
+  double get gradePoint {
+    final p = percentage;
+    if (p >= 90) return 10.0;
+    if (p >= 80) return 9.0;
+    if (p >= 70) return 8.0;
+    if (p >= 60) return 7.0;
+    if (p >= 50) return 6.0;
+    if (p >= 40) return 5.0;
+    return 0.0;
+  }
+}
+
 class Subject {
   final String id;
   String name;
@@ -45,7 +150,6 @@ class Subject {
 
   int get safeSkips {
     if (total == 0) return 0;
-    // Formula: how many consecutive skips can we take while keeping attended / (total + skips) >= minRequired
     final minRatio = minRequiredPercentage / 100.0;
     if (attended / total < minRatio) return 0;
     final maxTotal = (attended / minRatio).floor();
@@ -53,7 +157,6 @@ class Subject {
   }
 
   int neededClassesToReach(double targetPercentage) {
-    // Formula: (attended + x) / (total + x) >= targetRatio
     final targetRatio = targetPercentage / 100.0;
     if (targetRatio >= 1.0) return 0;
     final needed = ((targetRatio * total - attended) / (1 - targetRatio)).ceil();
@@ -70,31 +173,6 @@ class Subject {
     total += 1;
     history.insert(0, AttendanceRecord(date: date, status: 'absent'));
   }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'icon': icon,
-        'faculty': faculty,
-        'attended': attended,
-        'total': total,
-        'minRequiredPercentage': minRequiredPercentage,
-        'history': history.map((h) => h.toJson()).toList(),
-      };
-
-  factory Subject.fromJson(Map<String, dynamic> json) => Subject(
-        id: json['id'],
-        name: json['name'],
-        icon: json['icon'],
-        faculty: json['faculty'],
-        attended: json['attended'],
-        total: json['total'],
-        minRequiredPercentage: (json['minRequiredPercentage'] ?? 75.0).toDouble(),
-        history: (json['history'] as List<dynamic>?)
-                ?.map((e) => AttendanceRecord.fromJson(e))
-                .toList() ??
-            [],
-      );
 }
 
 class Achievement {
@@ -111,22 +189,6 @@ class Achievement {
     required this.desc,
     this.unlocked = false,
   });
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'icon': icon,
-        'title': title,
-        'desc': desc,
-        'unlocked': unlocked,
-      };
-
-  factory Achievement.fromJson(Map<String, dynamic> json) => Achievement(
-        id: json['id'],
-        icon: json['icon'],
-        title: json['title'],
-        desc: json['desc'],
-        unlocked: json['unlocked'] ?? false,
-      );
 }
 
 class LeaveItem {
@@ -143,22 +205,6 @@ class LeaveItem {
     required this.days,
     required this.status,
   });
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'type': type,
-        'dates': dates,
-        'days': days,
-        'status': status,
-      };
-
-  factory LeaveItem.fromJson(Map<String, dynamic> json) => LeaveItem(
-        id: json['id'],
-        type: json['type'],
-        dates: json['dates'],
-        days: json['days'],
-        status: json['status'],
-      );
 }
 
 class LeaveCategory {
@@ -175,20 +221,4 @@ class LeaveCategory {
     required this.used,
     required this.total,
   });
-
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'icon': icon,
-        'available': available,
-        'used': used,
-        'total': total,
-      };
-
-  factory LeaveCategory.fromJson(Map<String, dynamic> json) => LeaveCategory(
-        name: json['name'],
-        icon: json['icon'],
-        available: json['available'],
-        used: json['used'],
-        total: json['total'],
-      );
 }

@@ -5,8 +5,10 @@ import 'services/attendance_store.dart';
 import 'theme/colors.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/subjects_screen.dart';
-import 'screens/calendar_screen.dart';
+import 'screens/routine_screen.dart';
+import 'screens/marks_screen.dart';
 import 'screens/simulator_screen.dart';
+import 'screens/calendar_screen.dart';
 import 'screens/profile_screen.dart';
 
 void main() {
@@ -19,7 +21,7 @@ class BunkQuestApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'BunkQuest - Attendance OS',
+      title: 'BunkQuest - Attendance & Academic OS',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -67,7 +69,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   void _onSimulateSubject(String subjectId) {
     setState(() {
       _targetSimulatorSubjectId = subjectId;
-      _currentIndex = 3; // Simulator tab
+      _currentIndex = 4; // Simulator tab
     });
   }
 
@@ -214,11 +216,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         onSimulateSubject: _onSimulateSubject,
         initialSelectedSubjectId: _selectedSubjectIdForDetail,
       ),
-      CalendarScreen(store: _store),
+      RoutineScreen(store: _store),
+      MarksScreen(store: _store),
       SimulatorScreen(
         subjects: _store.subjects,
         initialSubjectId: _targetSimulatorSubjectId,
       ),
+      CalendarScreen(store: _store),
       ProfileScreen(store: _store),
     ];
 
@@ -249,14 +253,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           backgroundColor: Colors.white,
           selectedItemColor: AppColors.primary,
           unselectedItemColor: AppColors.textSecondary,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 11),
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 10),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 10),
           elevation: 0,
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
             BottomNavigationBarItem(icon: Icon(Icons.menu_book_rounded), label: 'Subjects'),
-            BottomNavigationBarItem(icon: Icon(Icons.calendar_month_rounded), label: 'Calendar'),
+            BottomNavigationBarItem(icon: Icon(Icons.schedule_rounded), label: 'Routine'),
+            BottomNavigationBarItem(icon: Icon(Icons.grade_rounded), label: 'Marks'),
             BottomNavigationBarItem(icon: Icon(Icons.sports_esports_rounded), label: 'Simulator'),
+            BottomNavigationBarItem(icon: Icon(Icons.calendar_month_rounded), label: 'Leaves'),
             BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
           ],
         ),
