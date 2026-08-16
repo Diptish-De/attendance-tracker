@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../models/models.dart';
 
@@ -9,13 +8,14 @@ class AttendanceDataStore extends ChangeNotifier {
     _initDefaultData();
   }
 
-  String studentName = 'Arjun Sharma';
+  String studentName = 'Arjun';
   String degree = 'B.Tech CSE · Semester 3';
-  int streakDays = 15;
-  int teachingDaysLeft = 58;
-  double semesterProgress = 46.0;
+  int streakDays = 12;
+  DateTime semesterStartDate = DateTime(2026, 7, 1);
+  DateTime semesterEndDate = DateTime(2026, 12, 15);
+  
   String upcomingHolidayName = 'Durga Puja';
-  int upcomingHolidayDaysLeft = 9;
+  DateTime upcomingHolidayDate = DateTime(2026, 8, 25);
 
   List<Subject> subjects = [];
   List<Achievement> achievements = [];
@@ -99,7 +99,35 @@ class AttendanceDataStore extends ChangeNotifier {
     ];
   }
 
-  // Overall Attendance Dynamic Calculations
+  // Live Dynamic Calculations
+  int get teachingDaysLeft {
+    final now = DateTime.now();
+    if (now.isAfter(semesterEndDate)) return 0;
+    // Calculate actual working days excluding weekends
+    int days = 0;
+    DateTime cur = now;
+    while (cur.isBefore(semesterEndDate)) {
+      if (cur.weekday != DateTime.saturday && cur.weekday != DateTime.sunday) {
+        days++;
+      }
+      cur = cur.add(const Duration(days: 1));
+    }
+    return days;
+  }
+
+  double get semesterProgress {
+    final now = DateTime.now();
+    final totalDuration = semesterEndDate.difference(semesterStartDate).inDays;
+    if (totalDuration <= 0) return 100.0;
+    final elapsed = now.difference(semesterStartDate).inDays;
+    return ((elapsed / totalDuration) * 100).clamp(0.0, 100.0);
+  }
+
+  int get upcomingHolidayDaysLeft {
+    final diff = upcomingHolidayDate.difference(DateTime.now()).inDays;
+    return diff > 0 ? diff : 0;
+  }
+
   int get overallPercentage {
     if (subjects.isEmpty) return 0;
     final totalAttended = subjects.fold<int>(0, (acc, s) => acc + s.attended);
@@ -120,11 +148,19 @@ class AttendanceDataStore extends ChangeNotifier {
     return AttendanceRisk.critical;
   }
 
+  // Profile Customization
+  void updateProfile(String name, String deg) {
+    studentName = name;
+    degree = deg;
+    notifyListeners();
+  }
+
   // Dynamic Actions
   void markPresent(String subjectId, String date) {
     final s = subjects.firstWhere((item) => item.id == subjectId);
     s.markPresent(date);
-    _checkStreakAndAchievements();
+    streakDays += 1;
+    _checkAchievements();
     notifyListeners();
   }
 
@@ -145,6 +181,7 @@ class AttendanceDataStore extends ChangeNotifier {
       total: total,
       minRequiredPercentage: minReq,
     ));
+    _checkAchievements();
     notifyListeners();
   }
 
@@ -183,11 +220,14 @@ class AttendanceDataStore extends ChangeNotifier {
     }
   }
 
-  void _checkStreakAndAchievements() {
-    streakDays += 1;
+  void _checkAchievements() {
     if (overallPercentage >= 75) {
       final b = achievements.where((a) => a.id == 'bunker').firstOrNull;
-      if (b != null && !b.unlocked) b.unlocked = true;
+      if (b != null) b.unlocked = true;
+    }
+    if (streakDays >= 10) {
+      final s = achievements.where((a) => a.id == 'streak').firstOrNull;
+      if (s != null) s.unlocked = true;
     }
   }
 }

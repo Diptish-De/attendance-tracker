@@ -17,6 +17,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final overallPct = widget.store.overallPercentage;
     final achievements = widget.store.achievements;
     final unlockedCount = achievements.where((a) => a.unlocked).length;
+    final currentMonthIndex = DateTime.now().month;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -30,13 +31,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 color: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 width: double.infinity,
-                child: const Text(
-                  'Profile & Campaign',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.textPrimary,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Profile & Campaign',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.edit_rounded, color: AppColors.textSecondary, size: 20),
+                      onPressed: () => _showEditProfileDialog(context),
+                    ),
+                  ],
                 ),
               ),
 
@@ -99,7 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     const SizedBox(height: 18),
 
-                    // Semester Campaign Map
+                    // Semester Campaign Map dynamically computed from calendar
                     const Text(
                       'Semester Strategy Campaign',
                       style: TextStyle(
@@ -118,11 +128,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       child: Column(
                         children: [
-                          _buildCampaignStep('⛺', 'August', 'Base Camp', true, false),
-                          _buildCampaignStep('📚', 'September', 'Regular Season', false, true),
-                          _buildCampaignStep('🎉', 'October', 'Festival Expansion Arc', false, false),
-                          _buildCampaignStep('⚔️', 'November', 'Survival Arc', false, false),
-                          _buildCampaignStep('💀', 'December', 'Final Boss Exams', false, false, isLast: true),
+                          _buildCampaignStep('⛺', 'August', 'Base Camp', currentMonthIndex > 8, currentMonthIndex == 8),
+                          _buildCampaignStep('📚', 'September', 'Regular Season', currentMonthIndex > 9, currentMonthIndex == 9),
+                          _buildCampaignStep('🎉', 'October', 'Festival Expansion Arc', currentMonthIndex > 10, currentMonthIndex == 10),
+                          _buildCampaignStep('⚔️', 'November', 'Survival Arc', currentMonthIndex > 11, currentMonthIndex == 11),
+                          _buildCampaignStep('💀', 'December', 'Final Boss Exams', currentMonthIndex > 12, currentMonthIndex == 12, isLast: true),
                         ],
                       ),
                     ),
@@ -229,6 +239,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showEditProfileDialog(BuildContext context) {
+    final nameCtrl = TextEditingController(text: widget.store.studentName);
+    final degCtrl = TextEditingController(text: widget.store.degree);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Edit Profile', style: TextStyle(fontWeight: FontWeight.w900)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameCtrl,
+              decoration: const InputDecoration(labelText: 'Your Name'),
+            ),
+            TextField(
+              controller: degCtrl,
+              decoration: const InputDecoration(labelText: 'Degree / Course / Semester'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              widget.store.updateProfile(nameCtrl.text.trim(), degCtrl.text.trim());
+              Navigator.pop(ctx);
+              setState(() {});
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Save', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }
