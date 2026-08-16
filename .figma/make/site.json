@@ -1,0 +1,10 @@
+{
+  "description": "Streamline task management by quickly organizing and tracking your to-dos in a simple, efficient interface designed for busy professionals.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

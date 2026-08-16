@@ -1,0 +1,11 @@
+{
+    "name": "BunkQuest",
+    "short_name": "BunkQuest",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#0175C2",
+    "theme_color": "#0175C2",
+    "description": "BunkQuest - Attendance Strategy App",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false
+}
