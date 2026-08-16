@@ -86,39 +86,65 @@ class RoutineSlot {
       );
 }
 
-// ─── Marks Model (Internal + End-Sem) ─────────────────────────────────────────
+// ─── Individual Assessment Entry Model ─────────────────────────────────────────
+class ExamAssessment {
+  String id;
+  String name; // e.g. "CIA 1", "CIA 2", "CIA 3", "End Sem"
+  double? obtainedMarks;
+  double maxMarks; // e.g. 20.0, 100.0
+
+  ExamAssessment({
+    required this.id,
+    required this.name,
+    this.obtainedMarks,
+    this.maxMarks = 20.0,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'obtainedMarks': obtainedMarks,
+        'maxMarks': maxMarks,
+      };
+
+  factory ExamAssessment.fromJson(Map<String, dynamic> json) => ExamAssessment(
+        id: json['id'] ?? '',
+        name: json['name'] ?? 'Exam',
+        obtainedMarks: json['obtainedMarks'] != null
+            ? (json['obtainedMarks'] as num).toDouble()
+            : null,
+        maxMarks: (json['maxMarks'] != null
+                ? (json['maxMarks'] as num).toDouble()
+                : 20.0)
+            .clamp(1.0, 1000.0),
+      );
+}
+
+// ─── Marks Model (Fully Customizable Assessments) ─────────────────────────────
 class SubjectMarks {
   final String subjectId;
   final String subjectName;
-  double? internal1;
-  double? internal1Max;
-  double? internal2;
-  double? internal2Max;
-  double? assignment;
-  double? assignmentMax;
-  double? endSem;
-  double? endSemMax;
   int credits;
+  List<ExamAssessment> assessments;
 
   SubjectMarks({
     required this.subjectId,
     required this.subjectName,
-    this.internal1,
-    this.internal1Max = 25,
-    this.internal2,
-    this.internal2Max = 25,
-    this.assignment,
-    this.assignmentMax = 10,
-    this.endSem,
-    this.endSemMax = 100,
     this.credits = 4,
-  });
+    List<ExamAssessment>? assessments,
+  }) : assessments = assessments ??
+            [
+              ExamAssessment(id: 'cia1', name: 'CIA 1', obtainedMarks: 18, maxMarks: 20),
+              ExamAssessment(id: 'cia2', name: 'CIA 2', obtainedMarks: 19, maxMarks: 20),
+              ExamAssessment(id: 'cia3', name: 'CIA 3', obtainedMarks: 17, maxMarks: 20),
+              ExamAssessment(id: 'endsem', name: 'End Sem', obtainedMarks: 85, maxMarks: 100),
+            ];
 
-  double get totalObtained =>
-      (internal1 ?? 0) + (internal2 ?? 0) + (assignment ?? 0) + (endSem ?? 0);
+  double get totalObtained => assessments.fold<double>(
+      0.0, (acc, a) => acc + (a.obtainedMarks ?? 0.0));
 
   double get totalMax =>
-      (internal1Max ?? 25) + (internal2Max ?? 25) + (assignmentMax ?? 10) + (endSemMax ?? 100);
+      assessments.fold<double>(0.0, (acc, a) => acc + a.maxMarks);
 
   double get percentage =>
       totalMax == 0 ? 0 : ((totalObtained / totalMax) * 100);
@@ -148,30 +174,51 @@ class SubjectMarks {
   Map<String, dynamic> toJson() => {
         'subjectId': subjectId,
         'subjectName': subjectName,
-        'internal1': internal1,
-        'internal1Max': internal1Max,
-        'internal2': internal2,
-        'internal2Max': internal2Max,
-        'assignment': assignment,
-        'assignmentMax': assignmentMax,
-        'endSem': endSem,
-        'endSemMax': endSemMax,
         'credits': credits,
+        'assessments': assessments.map((a) => a.toJson()).toList(),
       };
 
-  factory SubjectMarks.fromJson(Map<String, dynamic> json) => SubjectMarks(
-        subjectId: json['subjectId'] ?? '',
-        subjectName: json['subjectName'] ?? '',
-        internal1: json['internal1'] != null ? (json['internal1'] as num).toDouble() : null,
-        internal1Max: json['internal1Max'] != null ? (json['internal1Max'] as num).toDouble() : 25,
-        internal2: json['internal2'] != null ? (json['internal2'] as num).toDouble() : null,
-        internal2Max: json['internal2Max'] != null ? (json['internal2Max'] as num).toDouble() : 25,
-        assignment: json['assignment'] != null ? (json['assignment'] as num).toDouble() : null,
-        assignmentMax: json['assignmentMax'] != null ? (json['assignmentMax'] as num).toDouble() : 10,
-        endSem: json['endSem'] != null ? (json['endSem'] as num).toDouble() : null,
-        endSemMax: json['endSemMax'] != null ? (json['endSemMax'] as num).toDouble() : 100,
-        credits: json['credits'] ?? 4,
-      );
+  factory SubjectMarks.fromJson(Map<String, dynamic> json) {
+    List<ExamAssessment> list = [];
+    if (json['assessments'] != null) {
+      final List raw = json['assessments'];
+      list = raw.map((e) => ExamAssessment.fromJson(e)).toList();
+    } else {
+      list = [
+        ExamAssessment(
+          id: 'cia1',
+          name: 'CIA 1',
+          obtainedMarks: json['internal1'] != null ? (json['internal1'] as num).toDouble() : 18,
+          maxMarks: 20,
+        ),
+        ExamAssessment(
+          id: 'cia2',
+          name: 'CIA 2',
+          obtainedMarks: json['internal2'] != null ? (json['internal2'] as num).toDouble() : 19,
+          maxMarks: 20,
+        ),
+        ExamAssessment(
+          id: 'cia3',
+          name: 'CIA 3',
+          obtainedMarks: json['assignment'] != null ? (json['assignment'] as num).toDouble() : 17,
+          maxMarks: 20,
+        ),
+        ExamAssessment(
+          id: 'endsem',
+          name: 'End Sem',
+          obtainedMarks: json['endSem'] != null ? (json['endSem'] as num).toDouble() : 85,
+          maxMarks: 100,
+        ),
+      ];
+    }
+
+    return SubjectMarks(
+      subjectId: json['subjectId'] ?? '',
+      subjectName: json['subjectName'] ?? '',
+      credits: json['credits'] ?? 4,
+      assessments: list,
+    );
+  }
 }
 
 class Subject {

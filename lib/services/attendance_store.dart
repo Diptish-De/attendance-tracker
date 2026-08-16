@@ -147,11 +147,61 @@ class AttendanceDataStore extends ChangeNotifier {
 
   void _initDefaultMarks() {
     marks = [
-      SubjectMarks(subjectId: 'dsa', subjectName: 'DSA', internal1: 22, internal2: 24, assignment: 9, endSem: 88, credits: 4),
-      SubjectMarks(subjectId: 'oop', subjectName: 'OOP', internal1: 20, internal2: 22, assignment: 8.5, endSem: 82, credits: 4),
-      SubjectMarks(subjectId: 'dm', subjectName: 'DM', internal1: 24, internal2: 23, assignment: 10, endSem: 91, credits: 3),
-      SubjectMarks(subjectId: 'dsco', subjectName: 'DSCO', internal1: 17, internal2: 19, assignment: 7, endSem: 74, credits: 3),
-      SubjectMarks(subjectId: 'dbms', subjectName: 'DBMS', internal1: 18, internal2: 21, assignment: 8, endSem: 79, credits: 4),
+      SubjectMarks(
+        subjectId: 'dsa',
+        subjectName: 'DSA',
+        credits: 4,
+        assessments: [
+          ExamAssessment(id: 'cia1', name: 'CIA 1', obtainedMarks: 18, maxMarks: 20),
+          ExamAssessment(id: 'cia2', name: 'CIA 2', obtainedMarks: 19, maxMarks: 20),
+          ExamAssessment(id: 'cia3', name: 'CIA 3', obtainedMarks: 17, maxMarks: 20),
+          ExamAssessment(id: 'endsem', name: 'End Sem', obtainedMarks: 88, maxMarks: 100),
+        ],
+      ),
+      SubjectMarks(
+        subjectId: 'oop',
+        subjectName: 'OOP',
+        credits: 4,
+        assessments: [
+          ExamAssessment(id: 'cia1', name: 'CIA 1', obtainedMarks: 16, maxMarks: 20),
+          ExamAssessment(id: 'cia2', name: 'CIA 2', obtainedMarks: 17.5, maxMarks: 20),
+          ExamAssessment(id: 'cia3', name: 'CIA 3', obtainedMarks: 18, maxMarks: 20),
+          ExamAssessment(id: 'endsem', name: 'End Sem', obtainedMarks: 82, maxMarks: 100),
+        ],
+      ),
+      SubjectMarks(
+        subjectId: 'dm',
+        subjectName: 'DM',
+        credits: 3,
+        assessments: [
+          ExamAssessment(id: 'cia1', name: 'CIA 1', obtainedMarks: 19, maxMarks: 20),
+          ExamAssessment(id: 'cia2', name: 'CIA 2', obtainedMarks: 20, maxMarks: 20),
+          ExamAssessment(id: 'cia3', name: 'CIA 3', obtainedMarks: 18.5, maxMarks: 20),
+          ExamAssessment(id: 'endsem', name: 'End Sem', obtainedMarks: 91, maxMarks: 100),
+        ],
+      ),
+      SubjectMarks(
+        subjectId: 'dsco',
+        subjectName: 'DSCO',
+        credits: 3,
+        assessments: [
+          ExamAssessment(id: 'cia1', name: 'CIA 1', obtainedMarks: 14, maxMarks: 20),
+          ExamAssessment(id: 'cia2', name: 'CIA 2', obtainedMarks: 15, maxMarks: 20),
+          ExamAssessment(id: 'cia3', name: 'CIA 3', obtainedMarks: 13.5, maxMarks: 20),
+          ExamAssessment(id: 'endsem', name: 'End Sem', obtainedMarks: 74, maxMarks: 100),
+        ],
+      ),
+      SubjectMarks(
+        subjectId: 'dbms',
+        subjectName: 'DBMS',
+        credits: 4,
+        assessments: [
+          ExamAssessment(id: 'cia1', name: 'CIA 1', obtainedMarks: 15, maxMarks: 20),
+          ExamAssessment(id: 'cia2', name: 'CIA 2', obtainedMarks: 16.5, maxMarks: 20),
+          ExamAssessment(id: 'cia3', name: 'CIA 3', obtainedMarks: 16, maxMarks: 20),
+          ExamAssessment(id: 'endsem', name: 'End Sem', obtainedMarks: 79, maxMarks: 100),
+        ],
+      ),
     ];
   }
 
@@ -241,27 +291,52 @@ class AttendanceDataStore extends ChangeNotifier {
     return maximum == 0 ? 0.0 : ((obtained / maximum) * 100);
   }
 
-  void updateMarks(String subjectId, {double? internal1, double? internal2, double? assignment, double? endSem}) {
-    final mIndex = marks.indexWhere((item) => item.subjectId == subjectId);
-    if (mIndex != -1) {
-      final m = marks[mIndex];
-      if (internal1 != null) m.internal1 = internal1;
-      if (internal2 != null) m.internal2 = internal2;
-      if (assignment != null) m.assignment = assignment;
-      if (endSem != null) m.endSem = endSem;
+  void saveSubjectMarks(SubjectMarks updatedMarks) {
+    final idx = marks.indexWhere((m) => m.subjectId == updatedMarks.subjectId);
+    if (idx != -1) {
+      marks[idx] = updatedMarks;
     } else {
-      final s = subjects.where((sub) => sub.id == subjectId).firstOrNull;
-      marks.add(SubjectMarks(
-        subjectId: subjectId,
-        subjectName: s?.name ?? subjectId.toUpperCase(),
-        internal1: internal1,
-        internal2: internal2,
-        assignment: assignment,
-        endSem: endSem,
-      ));
+      marks.add(updatedMarks);
     }
     saveToPreferences();
     notifyListeners();
+  }
+
+  void updateAssessment(String subjectId, String assessmentId, {String? name, double? obtained, double? maxMarks}) {
+    final m = marks.where((item) => item.subjectId == subjectId).firstOrNull;
+    if (m != null) {
+      final a = m.assessments.where((item) => item.id == assessmentId).firstOrNull;
+      if (a != null) {
+        if (name != null) a.name = name;
+        if (obtained != null) a.obtainedMarks = obtained;
+        if (maxMarks != null) a.maxMarks = maxMarks;
+        saveToPreferences();
+        notifyListeners();
+      }
+    }
+  }
+
+  void addAssessment(String subjectId, String name, double maxMarks, double? obtainedMarks) {
+    final m = marks.where((item) => item.subjectId == subjectId).firstOrNull;
+    if (m != null) {
+      m.assessments.add(ExamAssessment(
+        id: 'asm_${DateTime.now().millisecondsSinceEpoch}',
+        name: name,
+        maxMarks: maxMarks,
+        obtainedMarks: obtainedMarks,
+      ));
+      saveToPreferences();
+      notifyListeners();
+    }
+  }
+
+  void removeAssessment(String subjectId, String assessmentId) {
+    final m = marks.where((item) => item.subjectId == subjectId).firstOrNull;
+    if (m != null) {
+      m.assessments.removeWhere((a) => a.id == assessmentId);
+      saveToPreferences();
+      notifyListeners();
+    }
   }
 
   // Target Criteria Modification per Subject

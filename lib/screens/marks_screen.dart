@@ -48,7 +48,7 @@ class _MarksScreenState extends State<MarksScreen> {
                         ),
                         SizedBox(height: 2),
                         Text(
-                          'Internal assessments, assignments & semester marks',
+                          'CIA 1, CIA 2, CIA 3, End Sem & custom assessments',
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.textSecondary,
@@ -221,7 +221,7 @@ class _MarksScreenState extends State<MarksScreen> {
                                             ),
                                           ),
                                           Text(
-                                            '${m.credits} Credits · ${m.grade}',
+                                            '${m.credits} Credits · ${m.grade} (${m.totalObtained.toStringAsFixed(1)} / ${m.totalMax.round()})',
                                             style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                                           ),
                                         ],
@@ -229,7 +229,14 @@ class _MarksScreenState extends State<MarksScreen> {
                                     ],
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.edit_note_rounded, color: AppColors.primary),
+                                    icon: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF1F5F9),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(Icons.edit_note_rounded, color: AppColors.primary, size: 20),
+                                    ),
                                     onPressed: () => _showEditMarksModal(context, m),
                                   ),
                                 ],
@@ -241,14 +248,19 @@ class _MarksScreenState extends State<MarksScreen> {
                                 height: 6,
                               ),
                               const SizedBox(height: 12),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _buildMarkChip('Internal 1', '${m.internal1 ?? '-'}/${m.internal1Max?.round()}'),
-                                  _buildMarkChip('Internal 2', '${m.internal2 ?? '-'}/${m.internal2Max?.round()}'),
-                                  _buildMarkChip('Assignment', '${m.assignment ?? '-'}/${m.assignmentMax?.round()}'),
-                                  _buildMarkChip('End Sem', '${m.endSem ?? '-'}/${m.endSemMax?.round()}', isHighlight: true),
-                                ],
+
+                              // Dynamic Exam Assessment Chips
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: m.assessments.map((a) {
+                                  final isEndSem = a.name.toLowerCase().contains('end');
+                                  final displayVal = a.obtainedMarks != null
+                                      ? '${a.obtainedMarks!.toStringAsFixed(a.obtainedMarks! % 1 == 0 ? 0 : 1)}/${a.maxMarks.round()}'
+                                      : '-/${a.maxMarks.round()}';
+
+                                  return _buildMarkChip(a.name, displayVal, isHighlight: isEndSem);
+                                }).toList(),
                               ),
                             ],
                           ),
@@ -274,6 +286,7 @@ class _MarksScreenState extends State<MarksScreen> {
         border: Border.all(color: isHighlight ? AppColors.safe.withValues(alpha: 0.3) : const Color(0xFFE2E8F0)),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
@@ -298,113 +311,214 @@ class _MarksScreenState extends State<MarksScreen> {
   }
 
   void _showEditMarksModal(BuildContext context, SubjectMarks m) {
-    final int1Ctrl = TextEditingController(text: m.internal1?.toString() ?? '');
-    final int2Ctrl = TextEditingController(text: m.internal2?.toString() ?? '');
-    final assCtrl  = TextEditingController(text: m.assignment?.toString() ?? '');
-    final endCtrl  = TextEditingController(text: m.endSem?.toString() ?? '');
+    // Clone assessments to edit locally
+    List<Map<String, dynamic>> localAssessments = m.assessments.map((a) {
+      return {
+        'id': a.id,
+        'nameController': TextEditingController(text: a.name),
+        'obtainedController': TextEditingController(text: a.obtainedMarks?.toString() ?? ''),
+        'maxController': TextEditingController(text: a.maxMarks.round().toString()),
+      };
+    }).toList();
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 20,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Update ${m.subjectName} Marks',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: int1Ctrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      labelText: 'Mid Term 1 (out of ${m.internal1Max?.round()})',
-                      border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                    ),
-                  ),
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9), width: 1.5)),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextField(
-                    controller: int2Ctrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      labelText: 'Mid Term 2 (out of ${m.internal2Max?.round()})',
-                      border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Edit ${m.subjectName} Marks',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                        ),
+                        const Text(
+                          'Customize exam names (CIA 1, 2, 3, EndSem), total & scored marks',
+                          style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: assCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      labelText: 'Assignment (out of ${m.assignmentMax?.round()})',
-                      border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => Navigator.pop(ctx),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextField(
-                    controller: endCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      labelText: 'End Sem Exam (out of ${m.endSemMax?.round()})',
-                      border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                widget.store.updateMarks(
-                  m.subjectId,
-                  internal1: double.tryParse(int1Ctrl.text),
-                  internal2: double.tryParse(int2Ctrl.text),
-                  assignment: double.tryParse(assCtrl.text),
-                  endSem: double.tryParse(endCtrl.text),
-                );
-                Navigator.pop(ctx);
-                setState(() {});
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Updated ${m.subjectName} scores!'),
-                    backgroundColor: AppColors.safe,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  ],
                 ),
               ),
-              child: const Text('Save Marks', style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
-            ),
-          ],
+
+              // Assessment List
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: localAssessments.length,
+                  itemBuilder: (context, i) {
+                    final item = localAssessments[i];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 5,
+                                child: TextField(
+                                  controller: item['nameController'] as TextEditingController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Exam / Assessment Name',
+                                    isDense: true,
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                flex: 3,
+                                child: TextField(
+                                  controller: item['maxController'] as TextEditingController,
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  decoration: InputDecoration(
+                                    labelText: 'Max / Total',
+                                    isDense: true,
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.critical, size: 20),
+                                tooltip: 'Delete Assessment',
+                                onPressed: () {
+                                  setModalState(() {
+                                    localAssessments.removeAt(i);
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: item['obtainedController'] as TextEditingController,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: InputDecoration(
+                              labelText: 'Your Scored Marks',
+                              hintText: 'Enter obtained marks',
+                              isDense: true,
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              // Bottom Actions
+              Container(
+                padding: EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  top: 12,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                ),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  border: Border(top: BorderSide(color: Color(0xFFF1F5F9))),
+                ),
+                child: Row(
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        setModalState(() {
+                          localAssessments.add({
+                            'id': 'asm_${DateTime.now().millisecondsSinceEpoch}',
+                            'nameController': TextEditingController(text: 'Assessment ${localAssessments.length + 1}'),
+                            'obtainedController': TextEditingController(text: ''),
+                            'maxController': TextEditingController(text: '20'),
+                          });
+                        });
+                      },
+                      icon: const Icon(Icons.add_rounded, size: 18),
+                      label: const Text('Add Exam'),
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          final updatedList = <ExamAssessment>[];
+                          for (final item in localAssessments) {
+                            final name = (item['nameController'] as TextEditingController).text.trim();
+                            final obtStr = (item['obtainedController'] as TextEditingController).text.trim();
+                            final maxStr = (item['maxController'] as TextEditingController).text.trim();
+                            if (name.isNotEmpty) {
+                              updatedList.add(ExamAssessment(
+                                id: item['id'] as String,
+                                name: name,
+                                obtainedMarks: double.tryParse(obtStr),
+                                maxMarks: double.tryParse(maxStr) ?? 20.0,
+                              ));
+                            }
+                          }
+
+                          m.assessments = updatedList;
+                          widget.store.saveSubjectMarks(m);
+                          Navigator.pop(ctx);
+                          setState(() {});
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Updated ${m.subjectName} assessments!'),
+                              backgroundColor: AppColors.safe,
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: const Text('Save Marks & Exams', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
