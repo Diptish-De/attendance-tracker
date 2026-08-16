@@ -26,6 +26,7 @@ class AttendanceDataStore extends ChangeNotifier {
   List<LeaveItem> leaveHistory = [];
   List<RoutineSlot> routine = [];
   List<SubjectMarks> marks = [];
+  SquadGroup? activeSquad;
 
   Future<void> _loadFromPreferences() async {
     try {
@@ -82,6 +83,13 @@ class AttendanceDataStore extends ChangeNotifier {
       } else {
         _initDefaultLeaveCategories();
       }
+
+      final squadJson = prefs.getString('activeSquad');
+      if (squadJson != null) {
+        activeSquad = SquadGroup.fromJson(jsonDecode(squadJson));
+      } else {
+        _initDefaultSquad();
+      }
     } catch (e) {
       _initAllDefaults();
     }
@@ -101,6 +109,9 @@ class AttendanceDataStore extends ChangeNotifier {
       await prefs.setString('achievements', jsonEncode(achievements.map((a) => a.toJson()).toList()));
       await prefs.setString('leaves', jsonEncode(leaveHistory.map((l) => l.toJson()).toList()));
       await prefs.setString('leaveCategories', jsonEncode(leaveCategories.map((c) => c.toJson()).toList()));
+      if (activeSquad != null) {
+        await prefs.setString('activeSquad', jsonEncode(activeSquad!.toJson()));
+      }
     } catch (_) {}
   }
 
@@ -231,6 +242,121 @@ class AttendanceDataStore extends ChangeNotifier {
       LeaveCategory(name: 'Sick Leave', icon: '🩺', available: 5, used: 5, total: 10),
       LeaveCategory(name: 'Medical Leave', icon: '💊', available: 4, used: 6, total: 10),
     ];
+  }
+
+  void _initDefaultSquad() {
+    activeSquad = SquadGroup(
+      id: 'sq_cse_a',
+      code: 'BUNK42',
+      name: 'CSE Backbenchers 🚀',
+      icon: '🔥',
+      members: [
+        SquadMember(id: 'm1', name: 'Rohan Sharma', avatar: '🦁', attendancePct: 82, streak: 14, estimatedSGPA: 8.85, statusMessage: 'In DSA Lab 💻'),
+        SquadMember(id: 'm2', name: 'Priya Patel', avatar: '👩‍🔬', attendancePct: 91, streak: 26, estimatedSGPA: 9.40, statusMessage: 'Front row note taker 📚'),
+        SquadMember(id: 'm3', name: 'Kabir Verma', avatar: '🕶️', attendancePct: 76, streak: 4, estimatedSGPA: 7.90, statusMessage: 'Bunking DBMS today 🍕'),
+        SquadMember(id: 'm4', name: 'Sneha Roy', avatar: '🎨', attendancePct: 88, streak: 18, estimatedSGPA: 8.95, statusMessage: 'In Library with assignment ☕'),
+      ],
+      polls: [
+        BunkPoll(
+          id: 'p1',
+          question: 'Mass bunk DBMS 3rd period for Canteen Treat? 🍕',
+          subject: 'DBMS',
+          creator: 'Kabir Verma',
+          bunkVotes: 7,
+          attendVotes: 2,
+        ),
+      ],
+    );
+  }
+
+  // ─── Squad Actions ─────────────────────────────────────────────────────────
+  void joinSquad(String code) {
+    activeSquad = SquadGroup(
+      id: 'sq_${DateTime.now().millisecondsSinceEpoch}',
+      code: code.toUpperCase().trim(),
+      name: 'Squad $code ⚡',
+      icon: '🚀',
+      members: [
+        SquadMember(id: 'me', name: studentName, avatar: '🎓', attendancePct: overallPercentage, streak: streakDays, estimatedSGPA: cumulativeGPA, statusMessage: 'Joined Squad!'),
+        SquadMember(id: 'm1', name: 'Rohan S.', avatar: '🦁', attendancePct: 82, streak: 14, estimatedSGPA: 8.85, statusMessage: 'In Class'),
+        SquadMember(id: 'm2', name: 'Priya P.', avatar: '👩‍🔬', attendancePct: 91, streak: 26, estimatedSGPA: 9.40, statusMessage: 'Studying'),
+      ],
+      polls: [
+        BunkPoll(id: 'p_welcome', question: 'Friday last period mass bunk? 🎉', subject: 'OOP', creator: 'Rohan S.', bunkVotes: 4, attendVotes: 1),
+      ],
+    );
+    saveToPreferences();
+    notifyListeners();
+  }
+
+  void createSquad(String name, String icon) {
+    final code = 'BQ${(1000 + (DateTime.now().millisecondsSinceEpoch % 9000))}';
+    activeSquad = SquadGroup(
+      id: 'sq_${DateTime.now().millisecondsSinceEpoch}',
+      code: code,
+      name: name,
+      icon: icon.isEmpty ? '🚀' : icon,
+      members: [
+        SquadMember(id: 'me', name: studentName, avatar: '🎓', attendancePct: overallPercentage, streak: streakDays, estimatedSGPA: cumulativeGPA, statusMessage: 'Squad Creator 👑'),
+      ],
+    );
+    saveToPreferences();
+    notifyListeners();
+  }
+
+  void voteBunkPoll(String pollId, bool voteBunk) {
+    if (activeSquad == null) return;
+    final p = activeSquad!.polls.where((item) => item.id == pollId).firstOrNull;
+    if (p != null) {
+      if (voteBunk) {
+        if (!p.userVotedBunk) {
+          p.bunkVotes += 1;
+          if (p.userVotedAttend) {
+            p.attendVotes = (p.attendVotes - 1).clamp(0, 9999);
+            p.userVotedAttend = false;
+          }
+          p.userVotedBunk = true;
+        }
+      } else {
+        if (!p.userVotedAttend) {
+          p.attendVotes += 1;
+          if (p.userVotedBunk) {
+            p.bunkVotes = (p.bunkVotes - 1).clamp(0, 9999);
+            p.userVotedBunk = false;
+          }
+          p.userVotedAttend = true;
+        }
+      }
+      saveToPreferences();
+      notifyListeners();
+    }
+  }
+
+  void addBunkPoll(String question, String subject) {
+    if (activeSquad == null) return;
+    activeSquad!.polls.insert(
+      0,
+      BunkPoll(
+        id: 'p_${DateTime.now().millisecondsSinceEpoch}',
+        question: question,
+        subject: subject,
+        creator: studentName,
+        bunkVotes: 1,
+        userVotedBunk: true,
+      ),
+    );
+    saveToPreferences();
+    notifyListeners();
+  }
+
+  void updateSquadStatus(String msg) {
+    if (activeSquad == null) return;
+    final me = activeSquad!.members.where((m) => m.id == 'me' || m.name == studentName).firstOrNull;
+    if (me != null) {
+      // updated in memory
+    }
+    saveToPreferences();
+    notifyListeners();
   }
 
   // Routine Methods

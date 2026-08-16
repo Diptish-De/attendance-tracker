@@ -428,3 +428,131 @@ class LeaveCategory {
         total: json['total'] ?? 0,
       );
 }
+
+// ─── Squad / Friend Group Models ──────────────────────────────────────────────
+class SquadMember {
+  final String id;
+  final String name;
+  final String avatar;
+  final int attendancePct;
+  final int streak;
+  final double estimatedSGPA;
+  final String statusMessage; // e.g. "Bunking DBMS today 🍕", "In Library"
+
+  SquadMember({
+    required this.id,
+    required this.name,
+    required this.avatar,
+    required this.attendancePct,
+    required this.streak,
+    required this.estimatedSGPA,
+    this.statusMessage = 'In Class',
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'avatar': avatar,
+        'attendancePct': attendancePct,
+        'streak': streak,
+        'estimatedSGPA': estimatedSGPA,
+        'statusMessage': statusMessage,
+      };
+
+  factory SquadMember.fromJson(Map<String, dynamic> json) => SquadMember(
+        id: json['id'] ?? '',
+        name: json['name'] ?? 'Friend',
+        avatar: json['avatar'] ?? '😎',
+        attendancePct: json['attendancePct'] ?? 75,
+        streak: json['streak'] ?? 5,
+        estimatedSGPA: (json['estimatedSGPA'] != null ? (json['estimatedSGPA'] as num).toDouble() : 8.0),
+        statusMessage: json['statusMessage'] ?? 'In Class',
+      );
+}
+
+class BunkPoll {
+  final String id;
+  final String question; // e.g. "Mass bunk DBMS 3rd period for canteen?"
+  final String subject;
+  final String creator;
+  int bunkVotes;
+  int attendVotes;
+  bool userVotedBunk;
+  bool userVotedAttend;
+
+  BunkPoll({
+    required this.id,
+    required this.question,
+    required this.subject,
+    required this.creator,
+    this.bunkVotes = 0,
+    this.attendVotes = 0,
+    this.userVotedBunk = false,
+    this.userVotedAttend = false,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'question': question,
+        'subject': subject,
+        'creator': creator,
+        'bunkVotes': bunkVotes,
+        'attendVotes': attendVotes,
+        'userVotedBunk': userVotedBunk,
+        'userVotedAttend': userVotedAttend,
+      };
+
+  factory BunkPoll.fromJson(Map<String, dynamic> json) => BunkPoll(
+        id: json['id'] ?? '',
+        question: json['question'] ?? '',
+        subject: json['subject'] ?? '',
+        creator: json['creator'] ?? 'Anonymous',
+        bunkVotes: json['bunkVotes'] ?? 0,
+        attendVotes: json['attendVotes'] ?? 0,
+        userVotedBunk: json['userVotedBunk'] ?? false,
+        userVotedAttend: json['userVotedAttend'] ?? false,
+      );
+}
+
+class SquadGroup {
+  final String id;
+  final String code; // 6-character room code, e.g. "BUNK42"
+  String name;      // e.g. "CSE Section A Backbenchers"
+  String icon;
+  List<SquadMember> members;
+  List<BunkPoll> polls;
+
+  SquadGroup({
+    required this.id,
+    required this.code,
+    required this.name,
+    this.icon = '🚀',
+    List<SquadMember>? members,
+    List<BunkPoll>? polls,
+  })  : members = members ?? [],
+        polls = polls ?? [];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'code': code,
+        'name': name,
+        'icon': icon,
+        'members': members.map((m) => m.toJson()).toList(),
+        'polls': polls.map((p) => p.toJson()).toList(),
+      };
+
+  factory SquadGroup.fromJson(Map<String, dynamic> json) => SquadGroup(
+        id: json['id'] ?? '',
+        code: json['code'] ?? 'SQUAD1',
+        name: json['name'] ?? 'College Squad',
+        icon: json['icon'] ?? '🚀',
+        members: (json['members'] as List<dynamic>?)
+                ?.map((e) => SquadMember.fromJson(e as Map<String, dynamic>))
+                .toList() ??
+            [],
+        polls: (json['polls'] as List<dynamic>?)
+                ?.map((e) => BunkPoll.fromJson(e as Map<String, dynamic>))
+                .toList() ??
+            [],
+      );
+}

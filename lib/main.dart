@@ -10,6 +10,7 @@ import 'screens/simulator_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/marks_screen.dart';
 import 'screens/calendar_screen.dart';
+import 'screens/squad_screen.dart';
 
 void main() {
   runApp(const BunkQuestApp());
@@ -118,6 +119,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (ctx) => CalendarScreen(store: _store)),
+    );
+  }
+
+  void _openSquadScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (ctx) => SquadScreen(store: _store)),
     );
   }
 
@@ -257,6 +265,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         onSeeAllRoutine: () => setState(() => _currentIndex = 2),
         onOpenMarks: () => _openMarksScreen(context),
         onOpenLeaves: () => _openLeavesScreen(context),
+        onOpenSquad: () => _openSquadScreen(context),
         onShowNotifications: _showNotificationsModal,
         onShowStreak: _showStreakDialog,
         onSelectSubject: _onSelectSubjectFromDashboard,
@@ -275,6 +284,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         store: _store,
         onOpenMarks: () => _openMarksScreen(context),
         onOpenLeaves: () => _openLeavesScreen(context),
+        onOpenSquad: () => _openSquadScreen(context),
       ),
     ];
 

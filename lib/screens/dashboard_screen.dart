@@ -10,6 +10,7 @@ class DashboardScreen extends StatelessWidget {
   final VoidCallback onSeeAllRoutine;
   final VoidCallback onOpenMarks;
   final VoidCallback onOpenLeaves;
+  final VoidCallback onOpenSquad;
   final VoidCallback onShowNotifications;
   final VoidCallback onShowStreak;
   final Function(String subjectId) onSelectSubject;
@@ -21,6 +22,7 @@ class DashboardScreen extends StatelessWidget {
     required this.onSeeAllRoutine,
     required this.onOpenMarks,
     required this.onOpenLeaves,
+    required this.onOpenSquad,
     required this.onShowNotifications,
     required this.onShowStreak,
     required this.onSelectSubject,
@@ -418,6 +420,73 @@ class DashboardScreen extends StatelessWidget {
                           ),
                         ),
                       ],
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // Squad Room Banner
+                    GestureDetector(
+                      onTap: onOpenSquad,
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.08),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
+                            )
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Center(
+                                child: Text('🚀', style: TextStyle(fontSize: 20)),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    store.activeSquad != null ? store.activeSquad!.name : 'Join Class Squad Room',
+                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white),
+                                  ),
+                                  Text(
+                                    store.activeSquad != null
+                                        ? 'Room Code: ${store.activeSquad!.code} · ${store.activeSquad!.members.length} Friends Online'
+                                        : 'Coordinate mass bunks & share timetables with code',
+                                    style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFA3E635),
+                                borderRadius: BorderRadius.circular(99),
+                              ),
+                              child: const Text(
+                                'Squad Room',
+                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
 
                     const SizedBox(height: 18),

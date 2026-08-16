@@ -6,12 +6,14 @@ class ProfileScreen extends StatefulWidget {
   final AttendanceDataStore store;
   final VoidCallback onOpenMarks;
   final VoidCallback onOpenLeaves;
+  final VoidCallback onOpenSquad;
 
   const ProfileScreen({
     super.key,
     required this.store,
     required this.onOpenMarks,
     required this.onOpenLeaves,
+    required this.onOpenSquad,
   });
 
   @override
@@ -221,6 +223,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                       ],
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // Squad Room card in profile
+                    GestureDetector(
+                      onTap: widget.onOpenSquad,
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+                          ),
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            )
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Center(
+                                child: Text('🚀', style: TextStyle(fontSize: 18)),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    widget.store.activeSquad != null
+                                        ? '${widget.store.activeSquad!.name} (Room: ${widget.store.activeSquad!.code})'
+                                        : 'Join or Create Squad Room',
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white),
+                                  ),
+                                  Text(
+                                    widget.store.activeSquad != null
+                                        ? '${widget.store.activeSquad!.members.length} Squad Members Connected'
+                                        : 'Share codes with friends for mass-bunk polls',
+                                    style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right_rounded, color: Colors.white, size: 20),
+                          ],
+                        ),
+                      ),
                     ),
 
                     const SizedBox(height: 18),
