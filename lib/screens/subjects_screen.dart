@@ -426,10 +426,13 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                           AppColors.safe,
                           AppColors.safeBg,
                           () {
-                            widget.store.markPresent(s.id, today);
+                            final now = DateTime.now();
+                            final dayName = _getDayName(now.weekday);
+                            final timeStr = _formatTime(now);
+                            widget.store.markPresent(s.id, today, day: dayName, time: timeStr, count: 1);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('${s.name}: marked present ✓ (Total: ${s.attended}/${s.total})'),
+                                content: Text('${s.name}: marked present ✓ on $dayName, $today'),
                                 backgroundColor: AppColors.safe,
                               ),
                             );
@@ -442,10 +445,13 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                           AppColors.critical,
                           AppColors.criticalBg,
                           () {
-                            widget.store.markAbsent(s.id, today);
+                            final now = DateTime.now();
+                            final dayName = _getDayName(now.weekday);
+                            final timeStr = _formatTime(now);
+                            widget.store.markAbsent(s.id, today, day: dayName, time: timeStr, count: 1);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('${s.name}: marked absent ✗ (Total: ${s.attended}/${s.total})'),
+                                content: Text('${s.name}: marked absent ✗ on $dayName, $today'),
                                 backgroundColor: AppColors.critical,
                               ),
                             );
@@ -611,52 +617,239 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
   void _showHistoryModal(BuildContext context, Subject s) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${s.name} Attendance History',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 14),
-            if (s.history.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 20),
-                child: Center(
-                  child: Text('No history recorded yet. Mark attendance to start logging!'),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            children: [
+              // Register Header
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9), width: 1.5)),
                 ),
-              )
-            else
-              ...s.history.take(6).map((h) {
-                final isPresent = h.status == 'present';
-                final c = isPresent ? AppColors.safe : AppColors.critical;
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: c.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border(left: BorderSide(color: c, width: 4)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(h.date, style: const TextStyle(fontWeight: FontWeight.w700)),
-                      Text(
-                        h.status.toUpperCase(),
-                        style: TextStyle(fontWeight: FontWeight.w800, color: c),
+                child: Column(
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 36,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFCBD5E1),
+                          borderRadius: BorderRadius.circular(99),
+                        ),
                       ),
-                    ],
-                  ),
-                );
-              }),
-          ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEDE9FE),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(Icons.menu_book_rounded, color: Color(0xFF7C3AED), size: 20),
+                            ),
+                            const SizedBox(width: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${s.name} Attendance Register',
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                                ),
+                                Text(
+                                  'Physical roll log · ${s.attended} Attended / ${s.total} Total (${s.percentage}%)',
+                                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close_rounded, size: 20),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Register Entries
+              Expanded(
+                child: s.history.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Text('📋', style: TextStyle(fontSize: 48)),
+                            SizedBox(height: 10),
+                            Text(
+                              'No roll calls recorded yet!',
+                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Mark attendance to automatically log date, day & periods into the register.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: s.history.length,
+                        itemBuilder: (context, idx) {
+                          final h = s.history[idx];
+                          final isPresent = h.status == 'present';
+                          final c = isPresent ? AppColors.safe : AppColors.critical;
+                          final bg = isPresent ? AppColors.safeBg : AppColors.criticalBg;
+
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.02),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                )
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                // Status Stamp Icon
+                                Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: bg,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      isPresent ? 'P' : 'A',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w900,
+                                        color: c,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+
+                                // Date, Day and Time details
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            h.date,
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w800,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                          ),
+                                          if (h.day.isNotEmpty) ...[
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFF1F5F9),
+                                                borderRadius: BorderRadius.circular(6),
+                                              ),
+                                              child: Text(
+                                                h.day,
+                                                style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.textSecondary),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            h.time.isNotEmpty ? h.time : 'Class Session',
+                                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            '• ${h.periods} Period${h.periods > 1 ? 's' : ''}',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                              color: h.periods > 1 ? const Color(0xFFD97706) : AppColors.textSecondary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                // Status Pill
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: bg,
+                                    borderRadius: BorderRadius.circular(99),
+                                  ),
+                                  child: Text(
+                                    isPresent ? 'PRESENT' : 'ABSENT',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                      color: c,
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(width: 4),
+
+                                // Delete/Undo entry
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Color(0xFF94A3B8)),
+                                  tooltip: 'Remove Entry',
+                                  onPressed: () {
+                                    widget.store.deleteAttendanceRecord(s.id, idx);
+                                    setModalState(() {});
+                                    setState(() {});
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Removed attendance register entry')),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -719,5 +912,17 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
   String _formatDate(DateTime dt) {
     final months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+  }
+
+  String _getDayName(int weekday) {
+    final days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    return days[(weekday - 1).clamp(0, 6)];
+  }
+
+  String _formatTime(DateTime dt) {
+    final hour = dt.hour == 0 ? 12 : (dt.hour > 12 ? dt.hour - 12 : dt.hour);
+    final period = dt.hour >= 12 ? 'PM' : 'AM';
+    final min = dt.minute.toString().padLeft(2, '0');
+    return '$hour:$min $period';
   }
 }

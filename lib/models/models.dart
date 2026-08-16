@@ -1,15 +1,40 @@
 enum AttendanceRisk { safe, caution, danger, critical }
 
 class AttendanceRecord {
-  final String date;
+  final String date;   // e.g. "Aug 17, 2026"
+  final String day;    // e.g. "Monday"
+  final String time;   // e.g. "09:00 AM"
+  final int periods;   // e.g. 1 or 2
   final String status; // 'present', 'absent', 'holiday'
+  final String note;
 
-  AttendanceRecord({required this.date, required this.status});
+  AttendanceRecord({
+    required this.date,
+    this.day = '',
+    this.time = '',
+    this.periods = 1,
+    required this.status,
+    this.note = '',
+  });
 
-  Map<String, dynamic> toJson() => {'date': date, 'status': status};
+  Map<String, dynamic> toJson() => {
+        'date': date,
+        'day': day,
+        'time': time,
+        'periods': periods,
+        'status': status,
+        'note': note,
+      };
 
   factory AttendanceRecord.fromJson(Map<String, dynamic> json) =>
-      AttendanceRecord(date: json['date'] ?? '', status: json['status'] ?? 'present');
+      AttendanceRecord(
+        date: json['date'] ?? '',
+        day: json['day'] ?? '',
+        time: json['time'] ?? '',
+        periods: json['periods'] ?? 1,
+        status: json['status'] ?? 'present',
+        note: json['note'] ?? '',
+      );
 }
 
 // ─── Routine / Timetable Model ────────────────────────────────────────────────
@@ -195,23 +220,44 @@ class Subject {
     return needed > 0 ? needed : 0;
   }
 
-  void markPresent(String date, {int count = 1}) {
+  void markPresent(String date, {String day = '', String time = '', int count = 1, String note = ''}) {
     attended += count;
     total += count;
     history.insert(
         0,
         AttendanceRecord(
-            date: count > 1 ? '$date ($count periods)' : date,
-            status: 'present'));
+          date: date,
+          day: day,
+          time: time,
+          periods: count,
+          status: 'present',
+          note: note,
+        ));
   }
 
-  void markAbsent(String date, {int count = 1}) {
+  void markAbsent(String date, {String day = '', String time = '', int count = 1, String note = ''}) {
     total += count;
     history.insert(
         0,
         AttendanceRecord(
-            date: count > 1 ? '$date ($count periods)' : date,
-            status: 'absent'));
+          date: date,
+          day: day,
+          time: time,
+          periods: count,
+          status: 'absent',
+          note: note,
+        ));
+  }
+
+  void deleteRecord(int index) {
+    if (index >= 0 && index < history.length) {
+      final rec = history[index];
+      if (rec.status == 'present') {
+        attended = (attended - rec.periods).clamp(0, 9999);
+      }
+      total = (total - rec.periods).clamp(0, 9999);
+      history.removeAt(index);
+    }
   }
 
   Map<String, dynamic> toJson() => {

@@ -329,10 +329,10 @@ class AttendanceDataStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  void markPresent(String subjectId, String date, {int count = 1}) {
+  void markPresent(String subjectId, String date, {String day = '', String time = '', int count = 1, String note = ''}) {
     final s = subjects.where((item) => item.id == subjectId).firstOrNull;
     if (s != null) {
-      s.markPresent(date, count: count);
+      s.markPresent(date, day: day, time: time, count: count, note: note);
       streakDays += 1;
       _checkAchievements();
       saveToPreferences();
@@ -340,10 +340,19 @@ class AttendanceDataStore extends ChangeNotifier {
     }
   }
 
-  void markAbsent(String subjectId, String date, {int count = 1}) {
+  void markAbsent(String subjectId, String date, {String day = '', String time = '', int count = 1, String note = ''}) {
     final s = subjects.where((item) => item.id == subjectId).firstOrNull;
     if (s != null) {
-      s.markAbsent(date, count: count);
+      s.markAbsent(date, day: day, time: time, count: count, note: note);
+      saveToPreferences();
+      notifyListeners();
+    }
+  }
+
+  void deleteAttendanceRecord(String subjectId, int recordIndex) {
+    final s = subjects.where((item) => item.id == subjectId).firstOrNull;
+    if (s != null) {
+      s.deleteRecord(recordIndex);
       saveToPreferences();
       notifyListeners();
     }

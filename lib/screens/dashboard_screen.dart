@@ -544,10 +544,16 @@ class DashboardScreen extends StatelessWidget {
                                     icon: const Icon(Icons.check_circle_rounded, color: AppColors.safe, size: 28),
                                     tooltip: 'Mark Attended (${slot.periodsCount} period${slot.periodsCount > 1 ? 's' : ''})',
                                     onPressed: () {
-                                      store.markPresent(sub.id, todayStr, count: slot.periodsCount);
+                                      store.markPresent(
+                                        sub.id,
+                                        todayStr,
+                                        day: slot.day,
+                                        time: slot.startTime,
+                                        count: slot.periodsCount,
+                                      );
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                          content: Text('Marked ${sub.name} (+${slot.periodsCount} periods) as Present ✓'),
+                                          content: Text('Marked ${sub.name} (+${slot.periodsCount} periods) as Present ✓ on ${slot.day}'),
                                           backgroundColor: AppColors.safe,
                                           duration: const Duration(seconds: 2),
                                         ),
@@ -558,10 +564,16 @@ class DashboardScreen extends StatelessWidget {
                                     icon: const Icon(Icons.cancel_rounded, color: AppColors.critical, size: 28),
                                     tooltip: 'Mark Bunked (${slot.periodsCount} period${slot.periodsCount > 1 ? 's' : ''})',
                                     onPressed: () {
-                                      store.markAbsent(sub.id, todayStr, count: slot.periodsCount);
+                                      store.markAbsent(
+                                        sub.id,
+                                        todayStr,
+                                        day: slot.day,
+                                        time: slot.startTime,
+                                        count: slot.periodsCount,
+                                      );
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                          content: Text('Marked ${sub.name} (+${slot.periodsCount} periods) as Absent ✗'),
+                                          content: Text('Marked ${sub.name} (+${slot.periodsCount} periods) as Absent ✗ on ${slot.day}'),
                                           backgroundColor: AppColors.critical,
                                           duration: const Duration(seconds: 2),
                                         ),
