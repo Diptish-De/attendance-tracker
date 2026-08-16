@@ -6,10 +6,10 @@ import 'theme/colors.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/subjects_screen.dart';
 import 'screens/routine_screen.dart';
-import 'screens/marks_screen.dart';
 import 'screens/simulator_screen.dart';
-import 'screens/calendar_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/marks_screen.dart';
+import 'screens/calendar_screen.dart';
 
 void main() {
   runApp(const BunkQuestApp());
@@ -96,7 +96,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   void _onSimulateSubject(String subjectId) {
     setState(() {
       _targetSimulatorSubjectId = subjectId;
-      _currentIndex = 4; // Simulator tab
+      _currentIndex = 3; // Simulator tab index in 5-tab bar
     });
   }
 
@@ -105,6 +105,20 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       _selectedSubjectIdForDetail = subjectId;
       _currentIndex = 1; // Subjects tab
     });
+  }
+
+  void _openMarksScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (ctx) => MarksScreen(store: _store)),
+    );
+  }
+
+  void _openLeavesScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (ctx) => CalendarScreen(store: _store)),
+    );
   }
 
   void _showStreakDialog() {
@@ -164,14 +178,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       } else if (s.risk == AttendanceRisk.caution) {
         alerts.add({
           'icon': '⚠️',
-          'text': '${s.name} is at ${s.percentage}%. One absence will put you below 75%.',
+          'text': '${s.name} is at ${s.percentage}%. One absence will put you below ${s.minRequiredPercentage.round()}%.',
           'color': AppColors.caution,
           'bg': AppColors.cautionBg,
         });
       } else if (s.risk == AttendanceRisk.danger || s.risk == AttendanceRisk.critical) {
         alerts.add({
           'icon': '💀',
-          'text': 'CRITICAL: ${s.name} is below 75%! Attend next ${s.neededClassesToReach(75.0)} classes.',
+          'text': 'CRITICAL: ${s.name} is below target! Attend next ${s.neededClassesToReach(s.minRequiredPercentage)} classes.',
           'color': AppColors.critical,
           'bg': AppColors.criticalBg,
         });
@@ -235,11 +249,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // 5 Canonical Clean Tabs: Home, Subjects, Routine, Simulator, Profile
     final screens = [
       DashboardScreen(
         store: _store,
         onSeeAllSubjects: () => setState(() => _currentIndex = 1),
         onSeeAllRoutine: () => setState(() => _currentIndex = 2),
+        onOpenMarks: () => _openMarksScreen(context),
+        onOpenLeaves: () => _openLeavesScreen(context),
         onShowNotifications: _showNotificationsModal,
         onShowStreak: _showStreakDialog,
         onSelectSubject: _onSelectSubjectFromDashboard,
@@ -250,13 +267,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         initialSelectedSubjectId: _selectedSubjectIdForDetail,
       ),
       RoutineScreen(store: _store),
-      MarksScreen(store: _store),
       SimulatorScreen(
         subjects: _store.subjects,
         initialSubjectId: _targetSimulatorSubjectId,
       ),
-      CalendarScreen(store: _store),
-      ProfileScreen(store: _store),
+      ProfileScreen(
+        store: _store,
+        onOpenMarks: () => _openMarksScreen(context),
+        onOpenLeaves: () => _openLeavesScreen(context),
+      ),
     ];
 
     return Scaffold(
@@ -286,16 +305,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           backgroundColor: Colors.white,
           selectedItemColor: AppColors.primary,
           unselectedItemColor: AppColors.textSecondary,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 10),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 10),
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 11),
           elevation: 0,
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
             BottomNavigationBarItem(icon: Icon(Icons.menu_book_rounded), label: 'Subjects'),
             BottomNavigationBarItem(icon: Icon(Icons.schedule_rounded), label: 'Routine'),
-            BottomNavigationBarItem(icon: Icon(Icons.grade_rounded), label: 'Marks'),
             BottomNavigationBarItem(icon: Icon(Icons.sports_esports_rounded), label: 'Simulator'),
-            BottomNavigationBarItem(icon: Icon(Icons.calendar_month_rounded), label: 'Leaves'),
             BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
           ],
         ),
