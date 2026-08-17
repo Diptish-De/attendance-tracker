@@ -262,29 +262,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                               const SizedBox(width: 12),
 
-                              // Quick Stats Cards Column
+                              // Quick Stats Cards Column (Compact)
                               Expanded(
                                 flex: 6,
                                 child: Column(
                                   children: [
                                     _buildStatCard(
-                                      'SAFE SKIPS LEFT',
+                                      'SAFE SKIPS',
                                       '$totalSkips',
                                       '🎯',
                                       AppColors.safe,
                                       AppColors.safeBg,
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 6),
                                     _buildStatCard(
-                                      'TEACHING DAYS LEFT',
+                                      'TEACHING DAYS',
                                       '${store.teachingDaysLeft}',
                                       '📅',
                                       const Color(0xFF3B82F6),
                                       const Color(0xFFDBEAFE),
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 6),
                                     _buildStatCard(
-                                      'SEMESTER PROGRESS',
+                                      'PROGRESS',
                                       '${store.semesterProgress.round()}%',
                                       '📈',
                                       const Color(0xFFF97316),
@@ -295,44 +295,107 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 14),
-                          // Upcoming holiday banner
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFCE7F3),
-                              borderRadius: BorderRadius.circular(16),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // ─── Subject Overview (Upper Part) ────────────────────────
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Subject Overview',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: widget.onSeeAllSubjects,
+                          child: const Text(
+                            'See All',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'UPCOMING HOLIDAY',
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+
+                    // Horizontal Subject List
+                    SizedBox(
+                      height: 135,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: subjects.length,
+                        itemBuilder: (context, index) {
+                          final s = subjects[index];
+                          final color = AppColors.getRiskColor(s.risk);
+                          final bg = AppColors.getRiskBg(s.risk);
+                          return GestureDetector(
+                            onTap: () => widget.onSelectSubject(s.id),
+                            child: Container(
+                              width: 105,
+                              margin: const EdgeInsets.only(right: 10),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.04),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
+                                  )
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  DonutWidget(
+                                    percentage: s.percentage,
+                                    color: color,
+                                    size: 52,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    s.name,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: bg,
+                                      borderRadius: BorderRadius.circular(99),
+                                    ),
+                                    child: Text(
+                                      '${s.safeSkips} skips',
                                       style: TextStyle(
                                         fontSize: 9,
                                         fontWeight: FontWeight.w800,
-                                        color: Color(0xFFEC4899),
+                                        color: color,
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${store.upcomingHolidayName} (${store.upcomingHolidayDaysLeft} days left)',
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.textPrimary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const Text('🎉', style: TextStyle(fontSize: 22)),
-                              ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          );
+                        },
                       ),
                     ),
 
@@ -798,106 +861,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                     const SizedBox(height: 18),
 
-                    // Subject Overview Header
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Subject Overview',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: widget.onSeeAllSubjects,
-                          child: const Text(
-                            'See All',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
 
-                    const SizedBox(height: 6),
-
-                    // Horizontal Subject List
-                    SizedBox(
-                      height: 140,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: subjects.length,
-                        itemBuilder: (context, index) {
-                          final s = subjects[index];
-                          final color = AppColors.getRiskColor(s.risk);
-                          final bg = AppColors.getRiskBg(s.risk);
-                          return GestureDetector(
-                            onTap: () => widget.onSelectSubject(s.id),
-                            child: Container(
-                              width: 110,
-                              margin: const EdgeInsets.only(right: 12),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.04),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 3),
-                                  )
-                                ],
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  DonutWidget(
-                                    percentage: s.percentage,
-                                    color: color,
-                                    size: 54,
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    s.name,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: bg,
-                                      borderRadius: BorderRadius.circular(99),
-                                    ),
-                                    child: Text(
-                                      '${s.safeSkips} skips',
-                                      style: TextStyle(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w800,
-                                        color: color,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
 
                     // Streak Banner Card
                     Container(
