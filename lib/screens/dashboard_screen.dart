@@ -4,7 +4,7 @@ import '../services/attendance_store.dart';
 import '../theme/colors.dart';
 import '../widgets/painters.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   final AttendanceDataStore store;
   final VoidCallback onSeeAllSubjects;
   final VoidCallback onSeeAllRoutine;
@@ -29,13 +29,38 @@ class DashboardScreen extends StatelessWidget {
   });
 
   @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  late DateTime _selectedDate;
+  final List<String> _weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = DateTime.now();
+  }
+
+  String _getDayName(DateTime dt) {
+    final days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    return days[dt.weekday - 1];
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final store = widget.store;
     final overallPct = store.overallPercentage;
     final totalSkips = store.totalSafeSkips;
     final overallRisk = store.overallRisk;
     final subjects = store.subjects;
-    final todayRoutine = store.getTodayRoutine();
-    final todayStr = _formatDate(DateTime.now());
+    
+    final selectedDayName = _getDayName(_selectedDate);
+    final isToday = _selectedDate.year == DateTime.now().year &&
+        _selectedDate.month == DateTime.now().month &&
+        _selectedDate.day == DateTime.now().day;
+    final dayRoutine = store.getRoutineForDay(selectedDayName);
+    final selectedDateStr = _formatDate(_selectedDate);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -108,7 +133,7 @@ class DashboardScreen extends StatelessWidget {
                           ),
                         ),
                         IconButton(
-                          onPressed: onShowNotifications,
+                          onPressed: widget.onShowNotifications,
                           icon: Stack(
                             children: [
                               Container(
@@ -318,7 +343,7 @@ class DashboardScreen extends StatelessWidget {
                       children: [
                         Expanded(
                           child: GestureDetector(
-                            onTap: onOpenMarks,
+                            onTap: widget.onOpenMarks,
                             child: Container(
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
@@ -370,7 +395,7 @@ class DashboardScreen extends StatelessWidget {
                         const SizedBox(width: 10),
                         Expanded(
                           child: GestureDetector(
-                            onTap: onOpenLeaves,
+                            onTap: widget.onOpenLeaves,
                             child: Container(
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
@@ -426,7 +451,7 @@ class DashboardScreen extends StatelessWidget {
 
                     // Squad Room Banner
                     GestureDetector(
-                      onTap: onOpenSquad,
+                      onTap: widget.onOpenSquad,
                       child: Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
@@ -491,48 +516,161 @@ class DashboardScreen extends StatelessWidget {
 
                     const SizedBox(height: 18),
 
-                    // ─── Today's Routine & 1-Tap Attendance Widget ───────────
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Today's Schedule & Quick Attendance",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.textPrimary,
+                    // ─── Interactive Date/Day Quick Attendance Widget ────────
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 12,
+                            offset: const Offset(0, 3),
+                          )
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        isToday ? "Today's Attendance" : "Attendance for $selectedDayName",
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w900,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                      if (isToday) ...[
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.safeBg,
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: const Text(
+                                            'LIVE TODAY',
+                                            style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppColors.primary),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  Text(
+                                    selectedDateStr,
+                                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  // Quick Date Picker Button
+                                  IconButton(
+                                    icon: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF1F5F9),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(Icons.edit_calendar_rounded, size: 18, color: AppColors.primary),
+                                    ),
+                                    tooltip: 'Pick Custom Date',
+                                    onPressed: () async {
+                                      final picked = await showDatePicker(
+                                        context: context,
+                                        initialDate: _selectedDate,
+                                        firstDate: DateTime(2025, 1, 1),
+                                        lastDate: DateTime(2027, 12, 31),
+                                      );
+                                      if (picked != null) {
+                                        setState(() => _selectedDate = picked);
+                                      }
+                                    },
+                                  ),
+                                  TextButton(
+                                    onPressed: widget.onSeeAllRoutine,
+                                    child: const Text(
+                                      'Routine',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                        ),
-                        TextButton(
-                          onPressed: onSeeAllRoutine,
-                          child: const Text(
-                            'Routine',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.primary,
+                          const SizedBox(height: 10),
+
+                          // Horizontal Weekday Quick Selector Chips
+                          SizedBox(
+                            height: 34,
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              children: _weekdays.map((day) {
+                                final isSel = day.toLowerCase() == selectedDayName.toLowerCase();
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 6),
+                                  child: ChoiceChip(
+                                    label: Text(day.substring(0, 3)),
+                                    selected: isSel,
+                                    onSelected: (selected) {
+                                      if (selected) {
+                                        final targetWeekday = _weekdays.indexOf(day) + 1;
+                                        final currentWeekday = DateTime.now().weekday;
+                                        final diff = targetWeekday - currentWeekday;
+                                        setState(() {
+                                          _selectedDate = DateTime.now().add(Duration(days: diff));
+                                        });
+                                      }
+                                    },
+                                    selectedColor: AppColors.primary,
+                                    labelStyle: TextStyle(
+                                      color: isSel ? Colors.white : AppColors.textPrimary,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 11,
+                                    ),
+                                    backgroundColor: const Color(0xFFF8FAFC),
+                                    side: BorderSide(color: isSel ? AppColors.primary : const Color(0xFFE2E8F0)),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    showCheckmark: false,
+                                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                                  ),
+                                );
+                              }).toList(),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 10),
 
-                    if (todayRoutine.isEmpty)
+                    if (dayRoutine.isEmpty)
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Row(
+                        child: Row(
                           children: [
-                            Text('🏖️', style: TextStyle(fontSize: 24)),
-                            SizedBox(width: 12),
+                            const Text('🏖️', style: TextStyle(fontSize: 24)),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'No classes scheduled for today! Enjoy your holiday.',
-                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+                                'No classes scheduled for $selectedDayName! Enjoy your off day or customize your timetable in Routine.',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
                               ),
                             ),
                           ],
@@ -540,7 +678,7 @@ class DashboardScreen extends StatelessWidget {
                       )
                     else
                       Column(
-                        children: todayRoutine.map((slot) {
+                        children: dayRoutine.map((slot) {
                           final sub = store.subjects.where((s) => s.id == slot.subjectId || s.name.toLowerCase() == slot.subjectName.toLowerCase()).firstOrNull;
 
                           return Container(
@@ -611,18 +749,19 @@ class DashboardScreen extends StatelessWidget {
                                 if (sub != null) ...[
                                   IconButton(
                                     icon: const Icon(Icons.check_circle_rounded, color: AppColors.safe, size: 28),
-                                    tooltip: 'Mark Attended (${slot.periodsCount} period${slot.periodsCount > 1 ? 's' : ''})',
+                                    tooltip: 'Mark Attended (${slot.periodsCount} period${slot.periodsCount > 1 ? 's' : ''}) on $selectedDateStr',
                                     onPressed: () {
                                       store.markPresent(
                                         sub.id,
-                                        todayStr,
+                                        selectedDateStr,
                                         day: slot.day,
                                         time: slot.startTime,
                                         count: slot.periodsCount,
                                       );
+                                      setState(() {});
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                          content: Text('Marked ${sub.name} (+${slot.periodsCount} periods) as Present ✓ on ${slot.day}'),
+                                          content: Text('Marked ${sub.name} (+${slot.periodsCount} periods) as Present ✓ on $selectedDateStr ($selectedDayName)'),
                                           backgroundColor: AppColors.safe,
                                           duration: const Duration(seconds: 2),
                                         ),
@@ -631,18 +770,19 @@ class DashboardScreen extends StatelessWidget {
                                   ),
                                   IconButton(
                                     icon: const Icon(Icons.cancel_rounded, color: AppColors.critical, size: 28),
-                                    tooltip: 'Mark Bunked (${slot.periodsCount} period${slot.periodsCount > 1 ? 's' : ''})',
+                                    tooltip: 'Mark Bunked (${slot.periodsCount} period${slot.periodsCount > 1 ? 's' : ''}) on $selectedDateStr',
                                     onPressed: () {
                                       store.markAbsent(
                                         sub.id,
-                                        todayStr,
+                                        selectedDateStr,
                                         day: slot.day,
                                         time: slot.startTime,
                                         count: slot.periodsCount,
                                       );
+                                      setState(() {});
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                          content: Text('Marked ${sub.name} (+${slot.periodsCount} periods) as Absent ✗ on ${slot.day}'),
+                                          content: Text('Marked ${sub.name} (+${slot.periodsCount} periods) as Absent ✗ on $selectedDateStr ($selectedDayName)'),
                                           backgroundColor: AppColors.critical,
                                           duration: const Duration(seconds: 2),
                                         ),
@@ -671,7 +811,7 @@ class DashboardScreen extends StatelessWidget {
                           ),
                         ),
                         TextButton(
-                          onPressed: onSeeAllSubjects,
+                          onPressed: widget.onSeeAllSubjects,
                           child: const Text(
                             'See All',
                             style: TextStyle(
@@ -697,7 +837,7 @@ class DashboardScreen extends StatelessWidget {
                           final color = AppColors.getRiskColor(s.risk);
                           final bg = AppColors.getRiskBg(s.risk);
                           return GestureDetector(
-                            onTap: () => onSelectSubject(s.id),
+                            onTap: () => widget.onSelectSubject(s.id),
                             child: Container(
                               width: 110,
                               margin: const EdgeInsets.only(right: 12),
@@ -799,7 +939,7 @@ class DashboardScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 8),
                                 InkWell(
-                                  onTap: onShowStreak,
+                                  onTap: widget.onShowStreak,
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 12, vertical: 5),
