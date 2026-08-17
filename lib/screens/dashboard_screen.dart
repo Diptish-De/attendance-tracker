@@ -117,6 +117,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     Row(
                       children: [
+                        // Compact Overall Attendance Pill Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.getRiskBg(overallRisk),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.getRiskColor(overallRisk).withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: AppColors.getRiskColor(overallRisk),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '$overallPct%',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.getRiskColor(overallRisk),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Overall',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.getRiskColor(overallRisk).withValues(alpha: 0.8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 6),
                         IconButton(
                           onPressed: widget.onShowNotifications,
                           icon: Stack(
@@ -160,133 +201,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Main Overall Card
-                    Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
-                          )
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'OVERALL ATTENDANCE',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textSecondary,
-                              letterSpacing: 0.8,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              // Semi Gauge Column
-                              Expanded(
-                                flex: 5,
-                                child: Column(
-                                  children: [
-                                    SizedBox(
-                                      height: 95,
-                                      child: CustomPaint(
-                                        size: const Size(160, 95),
-                                        painter: SemiGaugePainter(
-                                          percentage: overallPct.toDouble(),
-                                          risk: overallRisk,
-                                        ),
-                                      ),
-                                    ),
-                                    Text(
-                                      '$overallPct%',
-                                      style: const TextStyle(
-                                        fontSize: 36,
-                                        fontWeight: FontWeight.w900,
-                                        color: AppColors.textPrimary,
-                                        height: 1,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.getRiskBg(overallRisk),
-                                        borderRadius: BorderRadius.circular(99),
-                                      ),
-                                      child: Text(
-                                        overallRisk == AttendanceRisk.safe
-                                            ? 'SAFE ZONE'
-                                            : AppColors.getRiskLabel(overallRisk),
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w800,
-                                          color:
-                                              AppColors.getRiskColor(overallRisk),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    const Text(
-                                      'Target: 75%',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              const SizedBox(width: 12),
-
-                              // Quick Stats Cards Column (Compact)
-                              Expanded(
-                                flex: 6,
-                                child: Column(
-                                  children: [
-                                    _buildStatCard(
-                                      'SAFE SKIPS',
-                                      '$totalSkips',
-                                      '🎯',
-                                      AppColors.safe,
-                                      AppColors.safeBg,
-                                    ),
-                                    const SizedBox(height: 6),
-                                    _buildStatCard(
-                                      'TEACHING DAYS',
-                                      '${store.teachingDaysLeft}',
-                                      '📅',
-                                      const Color(0xFF3B82F6),
-                                      const Color(0xFFDBEAFE),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    _buildStatCard(
-                                      'PROGRESS',
-                                      '${store.semesterProgress.round()}%',
-                                      '📈',
-                                      const Color(0xFFF97316),
-                                      const Color(0xFFFFEDD5),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // ─── Subject Overview (Upper Part) ────────────────────────
+                    // ─── Subject Overview (Top Header) ────────────────────────
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -382,6 +297,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           );
                         },
                       ),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    // ─── Single Row 3-Stats Bar ──────────────────────────────
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildStatCard(
+                            'SAFE SKIPS',
+                            '$totalSkips',
+                            '🎯',
+                            AppColors.safe,
+                            AppColors.safeBg,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildStatCard(
+                            'TEACHING DAYS',
+                            '${store.teachingDaysLeft}',
+                            '📅',
+                            const Color(0xFF3B82F6),
+                            const Color(0xFFDBEAFE),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildStatCard(
+                            'PROGRESS',
+                            '${store.semesterProgress.round()}%',
+                            '📈',
+                            const Color(0xFFF97316),
+                            const Color(0xFFFFEDD5),
+                          ),
+                        ),
+                      ],
                     ),
 
                     const SizedBox(height: 16),
