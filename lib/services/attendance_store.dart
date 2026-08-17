@@ -26,7 +26,14 @@ class AttendanceDataStore extends ChangeNotifier {
   List<LeaveItem> leaveHistory = [];
   List<RoutineSlot> routine = [];
   List<SubjectMarks> marks = [];
-  SquadGroup? activeSquad;
+  List<SquadGroup> squadGroups = [];
+  String? activeSquadId;
+
+  SquadGroup? get activeSquad {
+    if (squadGroups.isEmpty) return null;
+    if (activeSquadId == null) return squadGroups.first;
+    return squadGroups.where((s) => s.id == activeSquadId).firstOrNull ?? squadGroups.first;
+  }
 
   Future<void> _loadFromPreferences() async {
     try {
@@ -84,9 +91,11 @@ class AttendanceDataStore extends ChangeNotifier {
         _initDefaultLeaveCategories();
       }
 
-      final squadJson = prefs.getString('activeSquad');
-      if (squadJson != null) {
-        activeSquad = SquadGroup.fromJson(jsonDecode(squadJson));
+      activeSquadId = prefs.getString('activeSquadId');
+      final squadListJson = prefs.getString('squadGroups');
+      if (squadListJson != null) {
+        final List list = jsonDecode(squadListJson);
+        squadGroups = list.map((e) => SquadGroup.fromJson(e)).toList();
       } else {
         _initDefaultSquad();
       }
@@ -109,8 +118,9 @@ class AttendanceDataStore extends ChangeNotifier {
       await prefs.setString('achievements', jsonEncode(achievements.map((a) => a.toJson()).toList()));
       await prefs.setString('leaves', jsonEncode(leaveHistory.map((l) => l.toJson()).toList()));
       await prefs.setString('leaveCategories', jsonEncode(leaveCategories.map((c) => c.toJson()).toList()));
-      if (activeSquad != null) {
-        await prefs.setString('activeSquad', jsonEncode(activeSquad!.toJson()));
+      await prefs.setString('squadGroups', jsonEncode(squadGroups.map((s) => s.toJson()).toList()));
+      if (activeSquadId != null) {
+        await prefs.setString('activeSquadId', activeSquadId!);
       }
     } catch (_) {}
   }
@@ -245,61 +255,171 @@ class AttendanceDataStore extends ChangeNotifier {
   }
 
   void _initDefaultSquad() {
-    activeSquad = SquadGroup(
-      id: 'sq_cse_a',
-      code: 'BUNK42',
-      name: 'CSE Backbenchers 🚀',
-      icon: '🔥',
-      members: [
-        SquadMember(id: 'm1', name: 'Rohan Sharma', avatar: '🦁', attendancePct: 82, streak: 14, estimatedSGPA: 8.85, statusMessage: 'In DSA Lab 💻'),
-        SquadMember(id: 'm2', name: 'Priya Patel', avatar: '👩‍🔬', attendancePct: 91, streak: 26, estimatedSGPA: 9.40, statusMessage: 'Front row note taker 📚'),
-        SquadMember(id: 'm3', name: 'Kabir Verma', avatar: '🕶️', attendancePct: 76, streak: 4, estimatedSGPA: 7.90, statusMessage: 'Bunking DBMS today 🍕'),
-        SquadMember(id: 'm4', name: 'Sneha Roy', avatar: '🎨', attendancePct: 88, streak: 18, estimatedSGPA: 8.95, statusMessage: 'In Library with assignment ☕'),
-      ],
-      polls: [
-        BunkPoll(
-          id: 'p1',
-          question: 'Mass bunk DBMS 3rd period for Canteen Treat? 🍕',
-          subject: 'DBMS',
-          creator: 'Kabir Verma',
-          bunkVotes: 7,
-          attendVotes: 2,
-        ),
-      ],
-    );
+    squadGroups = [
+      SquadGroup(
+        id: 'sq_cse_a',
+        code: 'BUNK42',
+        name: 'CSE Backbenchers',
+        icon: '🚀',
+        description: 'Official mass-bunk planning & notes sync for Section A',
+        category: 'Classroom / Batch',
+        themeColorHex: '#22C55E',
+        members: [
+          SquadMember(id: 'me', name: studentName, avatar: '🎓', attendancePct: overallPercentage, streak: streakDays, estimatedSGPA: cumulativeGPA, statusMessage: 'In Class 💻'),
+          SquadMember(id: 'm1', name: 'Rohan Sharma', avatar: '🦁', attendancePct: 82, streak: 14, estimatedSGPA: 8.85, statusMessage: 'In DSA Lab 💻'),
+          SquadMember(id: 'm2', name: 'Priya Patel', avatar: '👩‍🔬', attendancePct: 91, streak: 26, estimatedSGPA: 9.40, statusMessage: 'Front row note taker 📚'),
+          SquadMember(id: 'm3', name: 'Kabir Verma', avatar: '🕶️', attendancePct: 76, streak: 4, estimatedSGPA: 7.90, statusMessage: 'Bunking DBMS today 🍕'),
+          SquadMember(id: 'm4', name: 'Sneha Roy', avatar: '🎨', attendancePct: 88, streak: 18, estimatedSGPA: 8.95, statusMessage: 'In Library with assignment ☕'),
+        ],
+        polls: [
+          BunkPoll(
+            id: 'p1',
+            question: 'Mass bunk DBMS 3rd period for Canteen Treat? 🍕',
+            subject: 'DBMS',
+            creator: 'Kabir Verma',
+            bunkVotes: 7,
+            attendVotes: 2,
+          ),
+        ],
+        messages: [
+          ChatMessage(id: 'msg1', senderId: 'm3', senderName: 'Kabir Verma', senderAvatar: '🕶️', text: 'Prof is taking proxy checks in DBMS today, be alert guys!', timestamp: '09:15 AM'),
+          ChatMessage(id: 'msg2', senderId: 'm1', senderName: 'Rohan Sharma', senderAvatar: '🦁', text: 'DSA assignment solutions uploaded to the drive 📑', timestamp: '09:22 AM'),
+          ChatMessage(id: 'msg3', senderId: 'm2', senderName: 'Priya Patel', senderAvatar: '👩‍🔬', text: 'Who wants to study for CIA 2 after lunch?', timestamp: '10:05 AM'),
+        ],
+      ),
+      SquadGroup(
+        id: 'sq_hostel',
+        code: 'HOSTEL7',
+        name: 'Block 4 Warriors',
+        icon: '🍕',
+        description: 'Night outs, gaming sessions & late-night attendance check',
+        category: 'Hostel / Flat',
+        themeColorHex: '#8B5CF6',
+        members: [
+          SquadMember(id: 'me', name: studentName, avatar: '🎓', attendancePct: overallPercentage, streak: streakDays, estimatedSGPA: cumulativeGPA, statusMessage: 'Hostel Room 402'),
+          SquadMember(id: 'm1', name: 'Aakash Roy', avatar: '⚡', attendancePct: 78, streak: 8, estimatedSGPA: 8.10, statusMessage: 'Gaming in 405 🎮'),
+          SquadMember(id: 'm2', name: 'Dev Sen', avatar: '🎧', attendancePct: 74, streak: 3, estimatedSGPA: 7.60, statusMessage: 'Sleeping 😴'),
+        ],
+        messages: [
+          ChatMessage(id: 'msg_h1', senderId: 'm1', senderName: 'Aakash Roy', senderAvatar: '⚡', text: 'Anyone awake for FIFA in room 405?', timestamp: 'Yesterday, 11:30 PM'),
+        ],
+      ),
+    ];
+    activeSquadId = 'sq_cse_a';
   }
 
-  // ─── Squad Actions ─────────────────────────────────────────────────────────
+  // ─── Squad & Multi-Room Actions ───────────────────────────────────────────
+  void switchSquad(String squadId) {
+    if (squadGroups.any((s) => s.id == squadId)) {
+      activeSquadId = squadId;
+      saveToPreferences();
+      notifyListeners();
+    }
+  }
+
   void joinSquad(String code) {
-    activeSquad = SquadGroup(
+    final cleanCode = code.toUpperCase().trim();
+    // Check if already in squad with this code
+    final existing = squadGroups.where((s) => s.code.toUpperCase() == cleanCode).firstOrNull;
+    if (existing != null) {
+      activeSquadId = existing.id;
+      saveToPreferences();
+      notifyListeners();
+      return;
+    }
+
+    final newSquad = SquadGroup(
       id: 'sq_${DateTime.now().millisecondsSinceEpoch}',
-      code: code.toUpperCase().trim(),
-      name: 'Squad $code ⚡',
-      icon: '🚀',
+      code: cleanCode,
+      name: 'Squad $cleanCode',
+      icon: '⚡',
+      description: 'Connected via invite room code',
+      category: 'Peer Study Group',
+      themeColorHex: '#3B82F6',
       members: [
         SquadMember(id: 'me', name: studentName, avatar: '🎓', attendancePct: overallPercentage, streak: streakDays, estimatedSGPA: cumulativeGPA, statusMessage: 'Joined Squad!'),
         SquadMember(id: 'm1', name: 'Rohan S.', avatar: '🦁', attendancePct: 82, streak: 14, estimatedSGPA: 8.85, statusMessage: 'In Class'),
         SquadMember(id: 'm2', name: 'Priya P.', avatar: '👩‍🔬', attendancePct: 91, streak: 26, estimatedSGPA: 9.40, statusMessage: 'Studying'),
       ],
-      polls: [
-        BunkPoll(id: 'p_welcome', question: 'Friday last period mass bunk? 🎉', subject: 'OOP', creator: 'Rohan S.', bunkVotes: 4, attendVotes: 1),
+      messages: [
+        ChatMessage(id: 'm_join', senderId: 'system', senderName: 'System', senderAvatar: '🤖', text: '$studentName joined the room with code $cleanCode!', timestamp: 'Just now', isSystem: true),
       ],
     );
+
+    squadGroups.add(newSquad);
+    activeSquadId = newSquad.id;
     saveToPreferences();
     notifyListeners();
   }
 
-  void createSquad(String name, String icon) {
+  void createSquad(String name, String icon, {String description = '', String category = 'Classroom', String colorHex = '#22C55E'}) {
     final code = 'BQ${(1000 + (DateTime.now().millisecondsSinceEpoch % 9000))}';
-    activeSquad = SquadGroup(
+    final newSquad = SquadGroup(
       id: 'sq_${DateTime.now().millisecondsSinceEpoch}',
       code: code,
-      name: name,
+      name: name.trim().isEmpty ? 'My College Squad' : name.trim(),
       icon: icon.isEmpty ? '🚀' : icon,
+      description: description.isEmpty ? 'General student chat & bunk room' : description,
+      category: category,
+      themeColorHex: colorHex,
       members: [
-        SquadMember(id: 'me', name: studentName, avatar: '🎓', attendancePct: overallPercentage, streak: streakDays, estimatedSGPA: cumulativeGPA, statusMessage: 'Squad Creator 👑'),
+        SquadMember(id: 'me', name: studentName, avatar: '🎓', attendancePct: overallPercentage, streak: streakDays, estimatedSGPA: cumulativeGPA, statusMessage: 'Squad Host 👑'),
+      ],
+      messages: [
+        ChatMessage(id: 'm_init', senderId: 'system', senderName: 'System', senderAvatar: '🤖', text: 'Room created by $studentName. Share code $code with your classmates!', timestamp: 'Just now', isSystem: true),
       ],
     );
+
+    squadGroups.add(newSquad);
+    activeSquadId = newSquad.id;
+    saveToPreferences();
+    notifyListeners();
+  }
+
+  void updateSquadDetails(String squadId, {String? name, String? icon, String? description, String? category, String? colorHex}) {
+    final s = squadGroups.where((item) => item.id == squadId).firstOrNull;
+    if (s != null) {
+      if (name != null && name.isNotEmpty) s.name = name;
+      if (icon != null && icon.isNotEmpty) s.icon = icon;
+      if (description != null) s.description = description;
+      if (category != null) s.category = category;
+      if (colorHex != null) s.themeColorHex = colorHex;
+      saveToPreferences();
+      notifyListeners();
+    }
+  }
+
+  void deleteSquad(String squadId) {
+    squadGroups.removeWhere((s) => s.id == squadId);
+    if (squadGroups.isNotEmpty) {
+      activeSquadId = squadGroups.first.id;
+    } else {
+      activeSquadId = null;
+    }
+    saveToPreferences();
+    notifyListeners();
+  }
+
+  void sendSquadMessage(String text, {bool isBunkAlert = false}) {
+    final s = activeSquad;
+    if (s == null || text.trim().isEmpty) return;
+
+    final now = DateTime.now();
+    final hour = now.hour == 0 ? 12 : (now.hour > 12 ? now.hour - 12 : now.hour);
+    final period = now.hour >= 12 ? 'PM' : 'AM';
+    final min = now.minute.toString().padLeft(2, '0');
+    final timeStr = '$hour:$min $period';
+
+    s.messages.add(ChatMessage(
+      id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
+      senderId: 'me',
+      senderName: studentName,
+      senderAvatar: '🎓',
+      text: text.trim(),
+      timestamp: timeStr,
+      isBunkAlert: isBunkAlert,
+    ));
+
     saveToPreferences();
     notifyListeners();
   }
@@ -345,16 +465,6 @@ class AttendanceDataStore extends ChangeNotifier {
         userVotedBunk: true,
       ),
     );
-    saveToPreferences();
-    notifyListeners();
-  }
-
-  void updateSquadStatus(String msg) {
-    if (activeSquad == null) return;
-    final me = activeSquad!.members.where((m) => m.id == 'me' || m.name == studentName).firstOrNull;
-    if (me != null) {
-      // updated in memory
-    }
     saveToPreferences();
     notifyListeners();
   }

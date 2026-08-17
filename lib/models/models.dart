@@ -514,31 +514,88 @@ class BunkPoll {
       );
 }
 
+class ChatMessage {
+  final String id;
+  final String senderId;
+  final String senderName;
+  final String senderAvatar;
+  final String text;
+  final String timestamp;
+  final bool isBunkAlert; // e.g. "Arjun just marked Bunk for DBMS"
+  final bool isSystem;
+
+  ChatMessage({
+    required this.id,
+    required this.senderId,
+    required this.senderName,
+    required this.senderAvatar,
+    required this.text,
+    required this.timestamp,
+    this.isBunkAlert = false,
+    this.isSystem = false,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'senderId': senderId,
+        'senderName': senderName,
+        'senderAvatar': senderAvatar,
+        'text': text,
+        'timestamp': timestamp,
+        'isBunkAlert': isBunkAlert,
+        'isSystem': isSystem,
+      };
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) => ChatMessage(
+        id: json['id'] ?? '',
+        senderId: json['senderId'] ?? '',
+        senderName: json['senderName'] ?? 'User',
+        senderAvatar: json['senderAvatar'] ?? '🎓',
+        text: json['text'] ?? '',
+        timestamp: json['timestamp'] ?? '',
+        isBunkAlert: json['isBunkAlert'] ?? false,
+        isSystem: json['isSystem'] ?? false,
+      );
+}
+
 class SquadGroup {
   final String id;
-  final String code; // 6-character room code, e.g. "BUNK42"
-  String name;      // e.g. "CSE Section A Backbenchers"
-  String icon;
+  String code; // 6-character room code, e.g. "BUNK42"
+  String name; // e.g. "CSE Backbenchers"
+  String icon; // e.g. "🚀", "🍕", "🎮", "⚡"
+  String description;
+  String category; // e.g. "Class / Batch", "Project Team", "Hostel / Flat"
+  String themeColorHex; // custom room color: e.g. "#22C55E", "#8B5CF6", "#F97316"
   List<SquadMember> members;
   List<BunkPoll> polls;
+  List<ChatMessage> messages;
 
   SquadGroup({
     required this.id,
     required this.code,
     required this.name,
     this.icon = '🚀',
+    this.description = 'General student room',
+    this.category = 'Classroom',
+    this.themeColorHex = '#22C55E',
     List<SquadMember>? members,
     List<BunkPoll>? polls,
+    List<ChatMessage>? messages,
   })  : members = members ?? [],
-        polls = polls ?? [];
+        polls = polls ?? [],
+        messages = messages ?? [];
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'code': code,
         'name': name,
         'icon': icon,
+        'description': description,
+        'category': category,
+        'themeColorHex': themeColorHex,
         'members': members.map((m) => m.toJson()).toList(),
         'polls': polls.map((p) => p.toJson()).toList(),
+        'messages': messages.map((msg) => msg.toJson()).toList(),
       };
 
   factory SquadGroup.fromJson(Map<String, dynamic> json) => SquadGroup(
@@ -546,12 +603,19 @@ class SquadGroup {
         code: json['code'] ?? 'SQUAD1',
         name: json['name'] ?? 'College Squad',
         icon: json['icon'] ?? '🚀',
+        description: json['description'] ?? 'General student room',
+        category: json['category'] ?? 'Classroom',
+        themeColorHex: json['themeColorHex'] ?? '#22C55E',
         members: (json['members'] as List<dynamic>?)
                 ?.map((e) => SquadMember.fromJson(e as Map<String, dynamic>))
                 .toList() ??
             [],
         polls: (json['polls'] as List<dynamic>?)
                 ?.map((e) => BunkPoll.fromJson(e as Map<String, dynamic>))
+                .toList() ??
+            [],
+        messages: (json['messages'] as List<dynamic>?)
+                ?.map((e) => ChatMessage.fromJson(e as Map<String, dynamic>))
                 .toList() ??
             [],
       );
