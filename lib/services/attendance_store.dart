@@ -41,8 +41,12 @@ class AttendanceDataStore extends ChangeNotifier {
   Future<void> _loadFromPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      studentName = prefs.getString('studentName') ?? 'Arjun';
-      degree = prefs.getString('degree') ?? 'B.Tech';
+      final savedDeg = prefs.getString('degree') ?? 'B.Tech';
+      if (savedDeg.contains('·') || savedDeg.contains('Semester') || savedDeg.contains('CSE')) {
+        degree = 'B.Tech';
+      } else {
+        degree = savedDeg;
+      }
       course = prefs.getString('course') ?? 'CSE';
       semester = prefs.getString('semester') ?? 'Semester 3';
       streakDays = prefs.getInt('streakDays') ?? 12;

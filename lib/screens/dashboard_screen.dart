@@ -11,6 +11,7 @@ class DashboardScreen extends StatefulWidget {
   final VoidCallback onOpenMarks;
   final VoidCallback onOpenLeaves;
   final VoidCallback onOpenSquad;
+  final VoidCallback onOpenProfile;
   final VoidCallback onShowNotifications;
   final VoidCallback onShowStreak;
   final Function(String subjectId) onSelectSubject;
@@ -23,6 +24,7 @@ class DashboardScreen extends StatefulWidget {
     required this.onOpenMarks,
     required this.onOpenLeaves,
     required this.onOpenSquad,
+    required this.onOpenProfile,
     required this.onShowNotifications,
     required this.onShowStreak,
     required this.onSelectSubject,
@@ -77,43 +79,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 46,
-                          height: 46,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [Color(0xFFA3E635), Color(0xFF22C55E)],
-                            ),
-                          ),
-                          child: const Center(
-                            child: Text('🎓', style: TextStyle(fontSize: 22)),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: widget.onOpenProfile,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        child: Row(
                           children: [
-                            Text(
-                              'Hi, ${store.studentName} 👋',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.textPrimary,
+                            Container(
+                              width: 46,
+                              height: 46,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: [Color(0xFFA3E635), Color(0xFF22C55E)],
+                                ),
+                              ),
+                              child: const Center(
+                                child: Text('🎓', style: TextStyle(fontSize: 22)),
                               ),
                             ),
-                            Text(
-                              store.academicDetailsFormatted,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textSecondary,
-                              ),
+                            const SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Hi, ${store.studentName} 👋',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Icon(Icons.chevron_right_rounded, size: 16, color: AppColors.textSecondary),
+                                  ],
+                                ),
+                                Text(
+                                  store.academicDetailsFormatted,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
                     Row(
                       children: [

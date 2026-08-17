@@ -38,18 +38,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Container(
                 color: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 width: double.infinity,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Profile & Student Center',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.textPrimary,
-                      ),
+                    Row(
+                      children: [
+                        if (Navigator.canPop(context))
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        const Text(
+                          'Profile & Student Center',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ],
                     ),
                     IconButton(
                       icon: const Icon(Icons.edit_rounded, color: AppColors.textSecondary, size: 20),

@@ -4,6 +4,7 @@ import 'models/models.dart';
 import 'services/attendance_store.dart';
 import 'theme/colors.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/history_screen.dart';
 import 'screens/subjects_screen.dart';
 import 'screens/routine_screen.dart';
 import 'screens/simulator_screen.dart';
@@ -115,6 +116,20 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (ctx) => SquadScreen(store: _store)),
+    );
+  }
+
+  void _openProfileScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (ctx) => ProfileScreen(
+          store: _store,
+          onOpenMarks: () => _openMarksScreen(context),
+          onOpenLeaves: () => _openLeavesScreen(context),
+          onOpenSquad: () => _openSquadScreen(context),
+        ),
+      ),
     );
   }
 
@@ -258,7 +273,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 5 Canonical Clean Tabs: Home, Subjects, Routine, Simulator, Profile
+    // 5 Clean Tabs: Home, Subjects, Routine, Simulator, History Log
     final screens = [
       DashboardScreen(
         store: _store,
@@ -267,6 +282,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         onOpenMarks: () => _openMarksScreen(context),
         onOpenLeaves: () => _openLeavesScreen(context),
         onOpenSquad: () => _openSquadScreen(context),
+        onOpenProfile: () => _openProfileScreen(context),
         onShowNotifications: _showNotificationsModal,
         onShowStreak: _showStreakDialog,
         onSelectSubject: _onSelectSubjectFromDashboard,
@@ -281,12 +297,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         subjects: _store.subjects,
         initialSubjectId: _targetSimulatorSubjectId,
       ),
-      ProfileScreen(
-        store: _store,
-        onOpenMarks: () => _openMarksScreen(context),
-        onOpenLeaves: () => _openLeavesScreen(context),
-        onOpenSquad: () => _openSquadScreen(context),
-      ),
+      HistoryScreen(store: _store),
     ];
 
     return Scaffold(
@@ -324,7 +335,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             BottomNavigationBarItem(icon: Icon(Icons.menu_book_rounded), label: 'Subjects'),
             BottomNavigationBarItem(icon: Icon(Icons.schedule_rounded), label: 'Routine'),
             BottomNavigationBarItem(icon: Icon(Icons.sports_esports_rounded), label: 'Simulator'),
-            BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
+            BottomNavigationBarItem(icon: Icon(Icons.history_rounded), label: 'History'),
           ],
         ),
       ),
