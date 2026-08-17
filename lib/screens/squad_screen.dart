@@ -83,38 +83,48 @@ class _SquadScreenState extends State<SquadScreen> with SingleTickerProviderStat
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Active Room Picker Pill Button
-                      GestureDetector(
-                        onTap: () => _showRoomSwitchSheet(context),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: themeColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: themeColor.withValues(alpha: 0.3)),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary, size: 22),
+                            tooltip: 'Back',
+                            onPressed: () => Navigator.pop(context),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(activeSquad?.icon ?? '🚀', style: const TextStyle(fontSize: 18)),
-                              const SizedBox(width: 8),
-                              ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 160),
-                                child: Text(
-                                  activeSquad?.name ?? 'Select Room',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w900,
-                                    color: themeColor,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
+                          const SizedBox(width: 4),
+                          // Active Room Picker Pill Button
+                          GestureDetector(
+                            onTap: () => _showRoomSwitchSheet(context),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: themeColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: themeColor.withValues(alpha: 0.3)),
                               ),
-                              const SizedBox(width: 4),
-                              Icon(Icons.keyboard_arrow_down_rounded, color: themeColor, size: 20),
-                            ],
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(activeSquad?.icon ?? '🚀', style: const TextStyle(fontSize: 18)),
+                                  const SizedBox(width: 8),
+                                  ConstrainedBox(
+                                    constraints: const BoxConstraints(maxWidth: 140),
+                                    child: Text(
+                                      activeSquad?.name ?? 'Select Room',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w900,
+                                        color: themeColor,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(Icons.keyboard_arrow_down_rounded, color: themeColor, size: 20),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
 
                       // Room Quick Actions (Customization & Add/Join)
