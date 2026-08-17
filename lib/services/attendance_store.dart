@@ -10,7 +10,6 @@ class AttendanceDataStore extends ChangeNotifier {
     _loadFromPreferences();
   }
 
-  bool isDarkMode = false;
   String studentName = 'Arjun';
   String degree = 'B.Tech';
   String course = 'CSE';
@@ -42,7 +41,6 @@ class AttendanceDataStore extends ChangeNotifier {
   Future<void> _loadFromPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      isDarkMode = prefs.getBool('isDarkMode') ?? false;
       studentName = prefs.getString('studentName') ?? 'Arjun';
       degree = prefs.getString('degree') ?? 'B.Tech';
       course = prefs.getString('course') ?? 'CSE';
@@ -114,7 +112,6 @@ class AttendanceDataStore extends ChangeNotifier {
   Future<void> saveToPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isDarkMode', isDarkMode);
       await prefs.setString('studentName', studentName);
       await prefs.setString('degree', degree);
       await prefs.setString('course', course);
@@ -131,12 +128,6 @@ class AttendanceDataStore extends ChangeNotifier {
         await prefs.setString('activeSquadId', activeSquadId!);
       }
     } catch (_) {}
-  }
-
-  void toggleTheme() {
-    isDarkMode = !isDarkMode;
-    saveToPreferences();
-    notifyListeners();
   }
 
   void _initAllDefaults() {

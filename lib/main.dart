@@ -37,7 +37,7 @@ class _BunkQuestAppState extends State<BunkQuestApp> {
     return MaterialApp(
       title: 'BunkQuest - Attendance & Academic OS',
       debugShowCheckedModeBanner: false,
-      themeMode: _store.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      themeMode: ThemeMode.light,
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
@@ -48,17 +48,6 @@ class _BunkQuestAppState extends State<BunkQuestApp> {
           brightness: Brightness.light,
         ),
         textTheme: GoogleFonts.nunitoTextTheme(),
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0F172A),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primary,
-          surface: const Color(0xFF1E293B),
-          brightness: Brightness.dark,
-        ),
-        textTheme: GoogleFonts.nunitoTextTheme(ThemeData.dark().textTheme),
       ),
       home: const MainNavigationScreen(),
     );
@@ -210,7 +199,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: _store.isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -222,12 +211,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 '🔔 Smart Alerts',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
-                  color: _store.isDarkMode ? Colors.white : AppColors.textPrimary,
+                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 14),
@@ -237,9 +226,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: _store.isDarkMode
-                        ? alertColor.withValues(alpha: 0.15)
-                        : a['bg'] as Color,
+                    color: a['bg'] as Color,
                     borderRadius: BorderRadius.circular(14),
                     border: Border(left: BorderSide(color: alertColor, width: 4)),
                   ),
@@ -250,10 +237,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       Expanded(
                         child: Text(
                           a['text'] as String,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
-                            color: _store.isDarkMode ? Colors.white : const Color(0xFF1E293B),
+                            color: Color(0xFF1E293B),
                           ),
                         ),
                       ),

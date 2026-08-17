@@ -118,21 +118,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Row(
                       children: [
                         IconButton(
-                          onPressed: () => store.toggleTheme(),
-                          icon: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Color(0xFFF1F5F9),
-                            ),
-                            child: Icon(
-                              store.isDarkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                              color: const Color(0xFF64748B),
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                        IconButton(
                           onPressed: widget.onShowNotifications,
                           icon: Stack(
                             children: [
@@ -958,13 +943,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildStatCard(
       String label, String value, String icon, Color color, Color bg) {
-    final isDark = widget.store.isDarkMode;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: isDark ? color.withValues(alpha: 0.15) : bg,
+        color: bg,
         borderRadius: BorderRadius.circular(14),
-        border: isDark ? Border.all(color: color.withValues(alpha: 0.3)) : null,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -974,20 +957,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Text(
                 label,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 8.5,
                   fontWeight: FontWeight.w900,
-                  color: isDark ? color : const Color(0xFF334155),
+                  color: Color(0xFF334155),
                   letterSpacing: 0.3,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 value,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w900,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  color: Color(0xFF0F172A),
                 ),
               ),
             ],
