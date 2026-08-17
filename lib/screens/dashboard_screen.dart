@@ -958,11 +958,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildStatCard(
       String label, String value, String icon, Color color, Color bg) {
+    final isDark = widget.store.isDarkMode;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: bg,
+        color: isDark ? color.withValues(alpha: 0.15) : bg,
         borderRadius: BorderRadius.circular(14),
+        border: isDark ? Border.all(color: color.withValues(alpha: 0.3)) : null,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -973,9 +975,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 8,
-                  fontWeight: FontWeight.w800,
-                  color: color,
+                  fontSize: 8.5,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? color : const Color(0xFF334155),
+                  letterSpacing: 0.3,
                 ),
               ),
               const SizedBox(height: 2),
@@ -984,7 +987,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w900,
-                  color: color,
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                 ),
               ),
             ],

@@ -210,6 +210,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: _store.isDarkMode ? const Color(0xFF1E293B) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -221,32 +222,45 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 '🔔 Smart Alerts',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: _store.isDarkMode ? Colors.white : AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 14),
-              ...alerts.map((a) => Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: a['bg'] as Color,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border(left: BorderSide(color: a['color'] as Color, width: 4)),
-                    ),
-                    child: Row(
-                      children: [
-                        Text(a['icon'] as String, style: const TextStyle(fontSize: 18)),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            a['text'] as String,
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+              ...alerts.map((a) {
+                final alertColor = a['color'] as Color;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: _store.isDarkMode
+                        ? alertColor.withValues(alpha: 0.15)
+                        : a['bg'] as Color,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border(left: BorderSide(color: alertColor, width: 4)),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(a['icon'] as String, style: const TextStyle(fontSize: 18)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          a['text'] as String,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: _store.isDarkMode ? Colors.white : const Color(0xFF1E293B),
                           ),
                         ),
-                      ],
-                    ),
-                  )),
+                      ),
+                    ],
+                  ),
+                );
+              }),
               const SizedBox(height: 20),
             ],
           ),
