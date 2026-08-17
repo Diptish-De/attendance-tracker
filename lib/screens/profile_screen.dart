@@ -95,12 +95,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               color: AppColors.textPrimary,
                             ),
                           ),
-                          Text(
-                            widget.store.degree,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  widget.store.degree,
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.primary),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEDE9FE),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  widget.store.course,
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF7C3AED)),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEF3C7),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  widget.store.semester,
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFFD97706)),
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 16),
                           Row(
@@ -423,37 +457,121 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showEditProfileDialog(BuildContext context) {
     final nameCtrl = TextEditingController(text: widget.store.studentName);
     final degCtrl = TextEditingController(text: widget.store.degree);
+    final crsCtrl = TextEditingController(text: widget.store.course);
+    String selectedSem = widget.store.semester;
+
+    final semestersList = [
+      'Semester 1',
+      'Semester 2',
+      'Semester 3',
+      'Semester 4',
+      'Semester 5',
+      'Semester 6',
+      'Semester 7',
+      'Semester 8',
+    ];
+
+    if (!semestersList.contains(selectedSem)) {
+      semestersList.add(selectedSem);
+    }
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Edit Profile', style: TextStyle(fontWeight: FontWeight.w900)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameCtrl,
-              decoration: const InputDecoration(labelText: 'Your Name'),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: const Text('Edit Academic Profile', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: nameCtrl,
+                  decoration: InputDecoration(
+                    labelText: 'Student Name',
+                    isDense: true,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: TextField(
+                        controller: degCtrl,
+                        decoration: InputDecoration(
+                          labelText: 'Degree',
+                          hintText: 'e.g. B.Tech, B.Sc, BCA',
+                          isDense: true,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 5,
+                      child: TextField(
+                        controller: crsCtrl,
+                        decoration: InputDecoration(
+                          labelText: 'Course / Branch',
+                          hintText: 'e.g. CSE, ECE, IT',
+                          isDense: true,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: selectedSem,
+                  decoration: InputDecoration(
+                    labelText: 'Current Semester',
+                    isDense: true,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  items: semestersList
+                      .map((sem) => DropdownMenuItem(value: sem, child: Text(sem)))
+                      .toList(),
+                  onChanged: (val) {
+                    if (val != null) {
+                      setDialogState(() => selectedSem = val);
+                    }
+                  },
+                ),
+              ],
             ),
-            TextField(
-              controller: degCtrl,
-              decoration: const InputDecoration(labelText: 'Degree / Course / Semester'),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () {
+                widget.store.updateProfile(
+                  nameCtrl.text.trim(),
+                  deg: degCtrl.text.trim().isEmpty ? 'B.Tech' : degCtrl.text.trim(),
+                  crs: crsCtrl.text.trim().isEmpty ? 'CSE' : crsCtrl.text.trim(),
+                  sem: selectedSem,
+                );
+                Navigator.pop(ctx);
+                setState(() {});
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Academic profile updated! 🎓'),
+                    backgroundColor: AppColors.safe,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              child: const Text('Save Profile', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
             ),
           ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              widget.store.updateProfile(nameCtrl.text.trim(), degCtrl.text.trim());
-              Navigator.pop(ctx);
-              setState(() {});
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Save', style: TextStyle(color: Colors.white)),
-          ),
-        ],
       ),
     );
   }

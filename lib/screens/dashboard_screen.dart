@@ -105,7 +105,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ),
                             Text(
-                              store.degree,
+                              store.academicDetailsFormatted,
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: AppColors.textSecondary,

@@ -12,7 +12,9 @@ class AttendanceDataStore extends ChangeNotifier {
 
   bool isDarkMode = false;
   String studentName = 'Arjun';
-  String degree = 'B.Tech CSE · Semester 3';
+  String degree = 'B.Tech';
+  String course = 'CSE';
+  String semester = 'Semester 3';
   int streakDays = 12;
   DateTime semesterStartDate = DateTime(2026, 7, 1);
   DateTime semesterEndDate = DateTime(2026, 12, 15);
@@ -29,6 +31,8 @@ class AttendanceDataStore extends ChangeNotifier {
   List<SquadGroup> squadGroups = [];
   String? activeSquadId;
 
+  String get academicDetailsFormatted => '$degree $course · $semester';
+
   SquadGroup? get activeSquad {
     if (squadGroups.isEmpty) return null;
     if (activeSquadId == null) return squadGroups.first;
@@ -40,7 +44,9 @@ class AttendanceDataStore extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       isDarkMode = prefs.getBool('isDarkMode') ?? false;
       studentName = prefs.getString('studentName') ?? 'Arjun';
-      degree = prefs.getString('degree') ?? 'B.Tech CSE · Semester 3';
+      degree = prefs.getString('degree') ?? 'B.Tech';
+      course = prefs.getString('course') ?? 'CSE';
+      semester = prefs.getString('semester') ?? 'Semester 3';
       streakDays = prefs.getInt('streakDays') ?? 12;
 
       final subjectsJson = prefs.getString('subjects');
@@ -111,6 +117,8 @@ class AttendanceDataStore extends ChangeNotifier {
       await prefs.setBool('isDarkMode', isDarkMode);
       await prefs.setString('studentName', studentName);
       await prefs.setString('degree', degree);
+      await prefs.setString('course', course);
+      await prefs.setString('semester', semester);
       await prefs.setInt('streakDays', streakDays);
       await prefs.setString('subjects', jsonEncode(subjects.map((s) => s.toJson()).toList()));
       await prefs.setString('routine', jsonEncode(routine.map((r) => r.toJson()).toList()));
@@ -633,9 +641,11 @@ class AttendanceDataStore extends ChangeNotifier {
     return AttendanceRisk.critical;
   }
 
-  void updateProfile(String name, String deg) {
+  void updateProfile(String name, {String? deg, String? crs, String? sem}) {
     studentName = name;
-    degree = deg;
+    if (deg != null) degree = deg;
+    if (crs != null) course = crs;
+    if (sem != null) semester = sem;
     saveToPreferences();
     notifyListeners();
   }
