@@ -12,6 +12,7 @@ import 'screens/profile_screen.dart';
 import 'screens/marks_screen.dart';
 import 'screens/calendar_screen.dart';
 import 'screens/squad_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'services/supabase_config.dart';
 import 'services/supabase_sync_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -63,7 +64,14 @@ class _BunkQuestAppState extends State<BunkQuestApp> {
         ),
         textTheme: GoogleFonts.nunitoTextTheme(),
       ),
-      home: const MainNavigationScreen(),
+      home: !_store.onboardingCompleted
+          ? OnboardingScreen(
+              store: _store,
+              onFinish: () {
+                setState(() {});
+              },
+            )
+          : const MainNavigationScreen(),
     );
   }
 }

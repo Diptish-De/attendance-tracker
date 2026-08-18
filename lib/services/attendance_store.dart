@@ -16,6 +16,7 @@ class AttendanceDataStore extends ChangeNotifier {
   String course = 'CSE';
   String semester = 'Semester 3';
   int streakDays = 12;
+  bool onboardingCompleted = false;
   DateTime semesterStartDate = DateTime(2026, 7, 1);
   DateTime semesterEndDate = DateTime(2026, 12, 15);
   
@@ -53,6 +54,7 @@ class AttendanceDataStore extends ChangeNotifier {
       course = prefs.getString('course') ?? 'CSE';
       semester = prefs.getString('semester') ?? 'Semester 3';
       streakDays = prefs.getInt('streakDays') ?? 12;
+      onboardingCompleted = prefs.getBool('onboardingCompleted') ?? false;
 
       final subjectsJson = prefs.getString('subjects');
       if (subjectsJson != null) {
@@ -143,6 +145,7 @@ class AttendanceDataStore extends ChangeNotifier {
       await prefs.setString('course', course);
       await prefs.setString('semester', semester);
       await prefs.setInt('streakDays', streakDays);
+      await prefs.setBool('onboardingCompleted', onboardingCompleted);
       await prefs.setString('subjects', jsonEncode(subjects.map((s) => s.toJson()).toList()));
       await prefs.setString('routine', jsonEncode(routine.map((r) => r.toJson()).toList()));
       await prefs.setString('marks', jsonEncode(marks.map((m) => m.toJson()).toList()));
@@ -665,6 +668,12 @@ class AttendanceDataStore extends ChangeNotifier {
     } else {
       dailyNotes[dateStr] = note;
     }
+    saveToPreferences();
+    notifyListeners();
+  }
+
+  void completeOnboarding() {
+    onboardingCompleted = true;
     saveToPreferences();
     notifyListeners();
   }
