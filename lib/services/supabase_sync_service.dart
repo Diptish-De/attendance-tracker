@@ -61,8 +61,9 @@ class SupabaseSyncService {
     if (client == null) return;
 
     try {
+      final studentId = store.studentName.toLowerCase().replaceAll(' ', '_');
       await client.from('profiles').upsert({
-        'id': store.studentName.toLowerCase().replaceAll(' ', '_'),
+        'id': studentId,
         'name': store.studentName,
         'degree': store.degree,
         'course': store.course,
@@ -71,8 +72,58 @@ class SupabaseSyncService {
         'streak_days': store.streakDays,
         'updated_at': DateTime.now().toIso8601String(),
       });
+
+      // Also sync all subject records and attendance log history
+      await syncAllAttendanceDataToCloud();
     } catch (e) {
       debugPrint('Profile sync error: $e');
+    }
+  }
+
+  /// Sync all subjects and individual attendance logs to Supabase
+  Future<void> syncAllAttendanceDataToCloud() async {
+    final client = _client;
+    if (client == null) return;
+
+    final studentId = store.studentName.toLowerCase().replaceAll(' ', '_');
+
+    try {
+      for (final s in store.subjects) {
+        // 1. Upsert Subject
+        await client.from('subjects').upsert({
+          'id': '${studentId}_${s.id}',
+          'student_id': studentId,
+          'subject_id': s.id,
+          'name': s.name,
+          'faculty': s.faculty,
+          'icon': s.icon,
+          'attended': s.attended,
+          'total': s.total,
+          'min_req_pct': s.minRequiredPercentage,
+          'updated_at': DateTime.now().toIso8601String(),
+        });
+
+        // 2. Upsert Individual Attendance Session Logs
+        for (int i = 0; i < s.history.length; i++) {
+          final h = s.history[i];
+          final logId = '${studentId}_${s.id}_${h.date.replaceAll(' ', '_').replaceAll(',', '')}_$i';
+          await client.from('attendance_logs').upsert({
+            'id': logId,
+            'student_id': studentId,
+            'subject_id': s.id,
+            'subject_name': s.name,
+            'date': h.date,
+            'day': h.day,
+            'time': h.time,
+            'periods': h.periods,
+            'status': h.status,
+            'note': h.note,
+            'created_at': DateTime.now().toIso8601String(),
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Attendance log sync note: $e');
     }
   }
 
