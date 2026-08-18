@@ -107,10 +107,20 @@ class AttendanceDataStore extends ChangeNotifier {
       } else {
         _initDefaultSquad();
       }
+
+      // Auto-delete chats and polls older than 24 hours
+      _cleanupExpiredSquadData();
     } catch (e) {
       _initAllDefaults();
     }
     notifyListeners();
+  }
+
+  void _cleanupExpiredSquadData() {
+    for (final group in squadGroups) {
+      group.messages.removeWhere((msg) => msg.isExpired);
+      group.polls.removeWhere((poll) => poll.isExpired);
+    }
   }
 
   Future<void> saveToPreferences() async {

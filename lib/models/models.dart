@@ -479,6 +479,7 @@ class BunkPoll {
   int attendVotes;
   bool userVotedBunk;
   bool userVotedAttend;
+  final int createdAtMillis;
 
   BunkPoll({
     required this.id,
@@ -489,7 +490,13 @@ class BunkPoll {
     this.attendVotes = 0,
     this.userVotedBunk = false,
     this.userVotedAttend = false,
-  });
+    int? createdAtMillis,
+  }) : createdAtMillis = createdAtMillis ?? DateTime.now().millisecondsSinceEpoch;
+
+  bool get isExpired {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    return (now - createdAtMillis) > (24 * 60 * 60 * 1000); // 24 hours
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -500,6 +507,7 @@ class BunkPoll {
         'attendVotes': attendVotes,
         'userVotedBunk': userVotedBunk,
         'userVotedAttend': userVotedAttend,
+        'createdAtMillis': createdAtMillis,
       };
 
   factory BunkPoll.fromJson(Map<String, dynamic> json) => BunkPoll(
@@ -511,6 +519,7 @@ class BunkPoll {
         attendVotes: json['attendVotes'] ?? 0,
         userVotedBunk: json['userVotedBunk'] ?? false,
         userVotedAttend: json['userVotedAttend'] ?? false,
+        createdAtMillis: json['createdAtMillis'] ?? DateTime.now().millisecondsSinceEpoch,
       );
 }
 
@@ -523,6 +532,7 @@ class ChatMessage {
   final String timestamp;
   final bool isBunkAlert; // e.g. "Arjun just marked Bunk for DBMS"
   final bool isSystem;
+  final int createdAtMillis;
 
   ChatMessage({
     required this.id,
@@ -533,7 +543,13 @@ class ChatMessage {
     required this.timestamp,
     this.isBunkAlert = false,
     this.isSystem = false,
-  });
+    int? createdAtMillis,
+  }) : createdAtMillis = createdAtMillis ?? DateTime.now().millisecondsSinceEpoch;
+
+  bool get isExpired {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    return (now - createdAtMillis) > (24 * 60 * 60 * 1000); // 24 hours
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -544,6 +560,7 @@ class ChatMessage {
         'timestamp': timestamp,
         'isBunkAlert': isBunkAlert,
         'isSystem': isSystem,
+        'createdAtMillis': createdAtMillis,
       };
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) => ChatMessage(
@@ -555,6 +572,7 @@ class ChatMessage {
         timestamp: json['timestamp'] ?? '',
         isBunkAlert: json['isBunkAlert'] ?? false,
         isSystem: json['isSystem'] ?? false,
+        createdAtMillis: json['createdAtMillis'] ?? DateTime.now().millisecondsSinceEpoch,
       );
 }
 

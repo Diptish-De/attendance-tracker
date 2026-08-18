@@ -12,8 +12,8 @@ import 'screens/profile_screen.dart';
 import 'screens/marks_screen.dart';
 import 'screens/calendar_screen.dart';
 import 'screens/squad_screen.dart';
-
 import 'services/supabase_config.dart';
+import 'services/supabase_sync_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -79,10 +79,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   String? _targetSimulatorSubjectId;
   String? _selectedSubjectIdForDetail;
   final AttendanceDataStore _store = AttendanceDataStore();
+  late final SupabaseSyncService _syncService;
 
   @override
   void initState() {
     super.initState();
+    _syncService = SupabaseSyncService(_store);
     _store.addListener(_onStoreUpdate);
   }
 
