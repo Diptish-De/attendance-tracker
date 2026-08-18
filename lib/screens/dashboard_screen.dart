@@ -48,6 +48,69 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return days[dt.weekday - 1];
   }
 
+  void _showNoteDialog(BuildContext context, String dateStr) {
+    final noteController = TextEditingController(text: widget.store.dailyNotes[dateStr] ?? '');
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              const Icon(Icons.sticky_note_2_rounded, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Notes for $dateStr',
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+          content: TextField(
+            controller: noteController,
+            maxLines: 4,
+            decoration: InputDecoration(
+              hintText: 'Note down class rescheduling, cancellations, or updates...',
+              hintStyle: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              filled: true,
+              fillColor: const Color(0xFFF8FAFC),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w800)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                widget.store.setDailyNote(dateStr, noteController.text);
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: const Text('Save Note', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = widget.store;
@@ -59,6 +122,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final selectedDayName = _getDayName(_selectedDate);
     final dayRoutine = store.getRoutineForDay(selectedDayName);
     final selectedDateStr = _formatDate(_selectedDate);
+    final isToday = _selectedDate.year == DateTime.now().year &&
+        _selectedDate.month == DateTime.now().month &&
+        _selectedDate.day == DateTime.now().day;
+    final dailyNote = store.dailyNotes[selectedDateStr];
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -547,49 +614,140 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      const Text(
-                                        "Today's Attendance",
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w900,
-                                          color: AppColors.textPrimary,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            isToday ? "Today's Attendance" : "Attendance: $selectedDayName",
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w900,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(width: 6),
+                                        const SizedBox(width: 6),
+                                        if (isToday)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.safeBg,
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: const Text(
+                                              'LIVE TODAY',
+                                              style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: AppColors.primary),
+                                            ),
+                                          )
+                                        else
+                                          GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                _selectedDate = DateTime.now();
+                                              });
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFF1F5F9),
+                                                borderRadius: BorderRadius.circular(6),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: const [
+                                                  Icon(Icons.history_rounded, size: 10, color: AppColors.textSecondary),
+                                                  SizedBox(width: 3),
+                                                  Text(
+                                                    'Reset Today',
+                                                    style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: AppColors.textSecondary),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    Text(
+                                      selectedDateStr,
+                                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                                    ),
+                                    if (dailyNote != null) ...[
+                                      const SizedBox(height: 4),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
-                                          color: AppColors.safeBg,
-                                          borderRadius: BorderRadius.circular(6),
+                                          color: const Color(0xFFFEF3C7),
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(color: const Color(0xFFFDE68A)),
                                         ),
-                                        child: const Text(
-                                          'LIVE TODAY',
-                                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppColors.primary),
+                                        child: Text(
+                                          '📝 $dailyNote',
+                                          style: const TextStyle(fontSize: 10, color: Color(0xFFB45309), fontWeight: FontWeight.w700),
                                         ),
                                       ),
                                     ],
+                                  ],
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  // Jump Calendar Picker Button
+                                  IconButton(
+                                    icon: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF1F5F9),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(Icons.calendar_month_rounded, size: 18, color: AppColors.primary),
+                                    ),
+                                    tooltip: 'Jump to Specific Date',
+                                    onPressed: () async {
+                                      final picked = await showDatePicker(
+                                        context: context,
+                                        initialDate: _selectedDate,
+                                        firstDate: DateTime(2025, 1, 1),
+                                        lastDate: DateTime(2027, 12, 31),
+                                      );
+                                      if (picked != null) {
+                                        setState(() => _selectedDate = picked);
+                                      }
+                                    },
                                   ),
-                                  Text(
-                                    selectedDateStr,
-                                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                                  // Reschedule Note Button
+                                  IconButton(
+                                    icon: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: dailyNote != null ? const Color(0xFFFEF3C7) : const Color(0xFFF1F5F9),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Icon(
+                                        Icons.sticky_note_2_rounded,
+                                        size: 18,
+                                        color: dailyNote != null ? const Color(0xFFD97706) : AppColors.primary,
+                                      ),
+                                    ),
+                                    tooltip: 'Add Reschedule/Day Note',
+                                    onPressed: () => _showNoteDialog(context, selectedDateStr),
+                                  ),
+                                  TextButton(
+                                    onPressed: widget.onSeeAllRoutine,
+                                    child: const Text(
+                                      'Routine',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
                                   ),
                                 ],
-                              ),
-                              TextButton(
-                                onPressed: widget.onSeeAllRoutine,
-                                child: const Text(
-                                  'Routine',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
                               ),
                             ],
                           ),

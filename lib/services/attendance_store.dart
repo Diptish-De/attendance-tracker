@@ -29,6 +29,7 @@ class AttendanceDataStore extends ChangeNotifier {
   List<SubjectMarks> marks = [];
   List<SquadGroup> squadGroups = [];
   String? activeSquadId;
+  Map<String, String> dailyNotes = {};
 
   String get academicDetailsFormatted => '$degree $course · $semester';
 
@@ -108,6 +109,14 @@ class AttendanceDataStore extends ChangeNotifier {
         _initDefaultSquad();
       }
 
+      final dailyNotesJson = prefs.getString('dailyNotes');
+      if (dailyNotesJson != null) {
+        final Map<String, dynamic> decoded = jsonDecode(dailyNotesJson);
+        dailyNotes = decoded.map((key, value) => MapEntry(key, value.toString()));
+      } else {
+        dailyNotes = {};
+      }
+
       // Auto-delete chats and polls older than 24 hours
       _cleanupExpiredSquadData();
     } catch (e) {
@@ -138,6 +147,7 @@ class AttendanceDataStore extends ChangeNotifier {
       await prefs.setString('leaves', jsonEncode(leaveHistory.map((l) => l.toJson()).toList()));
       await prefs.setString('leaveCategories', jsonEncode(leaveCategories.map((c) => c.toJson()).toList()));
       await prefs.setString('squadGroups', jsonEncode(squadGroups.map((s) => s.toJson()).toList()));
+      await prefs.setString('dailyNotes', jsonEncode(dailyNotes));
       if (activeSquadId != null) {
         await prefs.setString('activeSquadId', activeSquadId!);
       }
@@ -644,6 +654,16 @@ class AttendanceDataStore extends ChangeNotifier {
     if (p >= 75) return AttendanceRisk.caution;
     if (p >= 70) return AttendanceRisk.danger;
     return AttendanceRisk.critical;
+  }
+
+  void setDailyNote(String dateStr, String note) {
+    if (note.trim().isEmpty) {
+      dailyNotes.remove(dateStr);
+    } else {
+      dailyNotes[dateStr] = note;
+    }
+    saveToPreferences();
+    notifyListeners();
   }
 
   void updateProfile(String name, {String? deg, String? crs, String? sem}) {
