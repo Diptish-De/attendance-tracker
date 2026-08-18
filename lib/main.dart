@@ -7,7 +7,7 @@ import 'screens/dashboard_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/subjects_screen.dart';
 import 'screens/routine_screen.dart';
-import 'screens/simulator_screen.dart';
+import 'screens/attendance_sheet_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/marks_screen.dart';
 import 'screens/calendar_screen.dart';
@@ -288,7 +288,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 5 Clean Tabs: Home, Subjects, Routine, Simulator, History Log
+    // 5 Clean Tabs: Home, Subjects, Routine, Attendance Sheet (Master + Simulator), History Log
     final screens = [
       DashboardScreen(
         store: _store,
@@ -308,9 +308,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         initialSelectedSubjectId: _selectedSubjectIdForDetail,
       ),
       RoutineScreen(store: _store),
-      SimulatorScreen(
-        subjects: _store.subjects,
-        initialSubjectId: _targetSimulatorSubjectId,
+      AttendanceSheetScreen(
+        store: _store,
+        initialTabIndex: _targetSimulatorSubjectId != null ? 1 : 0,
       ),
       HistoryScreen(store: _store),
     ];
@@ -336,6 +336,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               if (index != 1) {
                 _selectedSubjectIdForDetail = null;
               }
+              if (index != 3) {
+                _targetSimulatorSubjectId = null;
+              }
             });
           },
           type: BottomNavigationBarType.fixed,
@@ -349,7 +352,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
             BottomNavigationBarItem(icon: Icon(Icons.menu_book_rounded), label: 'Subjects'),
             BottomNavigationBarItem(icon: Icon(Icons.schedule_rounded), label: 'Routine'),
-            BottomNavigationBarItem(icon: Icon(Icons.sports_esports_rounded), label: 'Simulator'),
+            BottomNavigationBarItem(icon: Icon(Icons.table_chart_rounded), label: 'Sheet'),
             BottomNavigationBarItem(icon: Icon(Icons.history_rounded), label: 'History'),
           ],
         ),
