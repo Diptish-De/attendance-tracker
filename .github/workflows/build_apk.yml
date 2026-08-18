@@ -1,9 +1,12 @@
-name: Build Android APK
+name: Build & Release Android APK
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -38,3 +41,22 @@ jobs:
           name: BunkQuest-Release-APK
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "BunkQuest Latest Android Release (v1.0.0)"
+          body: |
+            ### 🎓 BunkQuest - Attendance & Academic OS
+            
+            **Direct APK Download Link:**
+            👉 Click below under Assets to download `app-release.apk` directly to your Android device!
+            
+            - 📊 Live Attendance & Safe Bunk Simulator
+            - 📜 Historical Register & 10s Undo Safety
+            - ☁️ Supabase Realtime Cloud Sync & Squad Chat
+            - ⏳ 24h Auto-Expiring ephemeral room messages
+          files: build/app/outputs/flutter-apk/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
