@@ -31,6 +31,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8'
   ];
 
+  late DateTime _semesterStartDate;
+  late DateTime _semesterEndDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _semesterStartDate = widget.store.semesterStartDate;
+    _semesterEndDate = widget.store.semesterEndDate;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -403,6 +413,83 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     }
                   },
                 ),
+                const SizedBox(height: 14),
+
+                // Semester Term Dates
+                const Text(
+                  'Semester Duration (Teaching Days)',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _semesterStartDate,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2030),
+                          );
+                          if (picked != null) {
+                            setState(() => _semesterStartDate = picked);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Start Date', style: TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
+                              const SizedBox(height: 2),
+                              Text('${_semesterStartDate.day}/${_semesterStartDate.month}/${_semesterStartDate.year}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _semesterEndDate,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2030),
+                          );
+                          if (picked != null) {
+                            setState(() => _semesterEndDate = picked);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('End Date', style: TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
+                              const SizedBox(height: 2),
+                              Text('${_semesterEndDate.day}/${_semesterEndDate.month}/${_semesterEndDate.year}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -423,6 +510,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       sem: _selectedSemester,
     );
 
+    widget.store.updateSemesterDates(_semesterStartDate, _semesterEndDate);
     widget.store.completeOnboarding();
     widget.onFinish();
   }

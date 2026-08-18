@@ -56,6 +56,15 @@ class AttendanceDataStore extends ChangeNotifier {
       streakDays = prefs.getInt('streakDays') ?? 0;
       onboardingCompleted = prefs.getBool('onboardingCompleted') ?? false;
 
+      final startStr = prefs.getString('semesterStartDate');
+      if (startStr != null) {
+        semesterStartDate = DateTime.tryParse(startStr) ?? semesterStartDate;
+      }
+      final endStr = prefs.getString('semesterEndDate');
+      if (endStr != null) {
+        semesterEndDate = DateTime.tryParse(endStr) ?? semesterEndDate;
+      }
+
       final subjectsJson = prefs.getString('subjects');
       if (subjectsJson != null) {
         final List list = jsonDecode(subjectsJson);
@@ -180,6 +189,8 @@ class AttendanceDataStore extends ChangeNotifier {
       await prefs.setString('semester', semester);
       await prefs.setInt('streakDays', streakDays);
       await prefs.setBool('onboardingCompleted', onboardingCompleted);
+      await prefs.setString('semesterStartDate', semesterStartDate.toIso8601String());
+      await prefs.setString('semesterEndDate', semesterEndDate.toIso8601String());
       await prefs.setString('subjects', jsonEncode(subjects.map((s) => s.toJson()).toList()));
       await prefs.setString('routine', jsonEncode(routine.map((r) => r.toJson()).toList()));
       await prefs.setString('marks', jsonEncode(marks.map((m) => m.toJson()).toList()));
@@ -669,6 +680,26 @@ class AttendanceDataStore extends ChangeNotifier {
     if (totalDuration <= 0) return 100.0;
     final elapsed = now.difference(semesterStartDate).inDays;
     return ((elapsed / totalDuration) * 100).clamp(0.0, 100.0);
+  }
+
+  int get totalTeachingDays {
+    if (semesterEndDate.isBefore(semesterStartDate)) return 0;
+    int days = 0;
+    DateTime cur = semesterStartDate;
+    while (cur.isBefore(semesterEndDate)) {
+      if (cur.weekday != DateTime.saturday && cur.weekday != DateTime.sunday) {
+        days++;
+      }
+      cur = cur.add(const Duration(days: 1));
+    }
+    return days;
+  }
+
+  void updateSemesterDates(DateTime start, DateTime end) {
+    semesterStartDate = start;
+    semesterEndDate = end;
+    saveToPreferences();
+    notifyListeners();
   }
 
   int get upcomingHolidayDaysLeft {

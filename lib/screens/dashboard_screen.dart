@@ -437,22 +437,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: _buildStatCard(
-                            'TEACHING DAYS',
-                            '${store.teachingDaysLeft}',
-                            '📅',
-                            const Color(0xFF3B82F6),
-                            const Color(0xFFDBEAFE),
+                          child: GestureDetector(
+                            onTap: () => _showSemesterDatesDialog(context),
+                            child: _buildStatCard(
+                              'TEACHING DAYS',
+                              '${store.teachingDaysLeft}',
+                              '📅',
+                              const Color(0xFF3B82F6),
+                              const Color(0xFFDBEAFE),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: _buildStatCard(
-                            'PROGRESS',
-                            '${store.semesterProgress.round()}%',
-                            '📈',
-                            const Color(0xFFF97316),
-                            const Color(0xFFFFEDD5),
+                          child: GestureDetector(
+                            onTap: () => _showSemesterDatesDialog(context),
+                            child: _buildStatCard(
+                              'PROGRESS',
+                              '${store.semesterProgress.round()}%',
+                              '📈',
+                              const Color(0xFFF97316),
+                              const Color(0xFFFFEDD5),
+                            ),
                           ),
                         ),
                       ],
@@ -1073,6 +1079,194 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           Text(icon, style: const TextStyle(fontSize: 18)),
         ],
+      ),
+    );
+  }
+
+  void _showSemesterDatesDialog(BuildContext context) {
+    DateTime tempStart = widget.store.semesterStartDate;
+    DateTime tempEnd = widget.store.semesterEndDate;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          int calcTeachingDays() {
+            if (tempEnd.isBefore(tempStart)) return 0;
+            int days = 0;
+            DateTime cur = tempStart;
+            while (cur.isBefore(tempEnd)) {
+              if (cur.weekday != DateTime.saturday && cur.weekday != DateTime.sunday) {
+                days++;
+              }
+              cur = cur.add(const Duration(days: 1));
+            }
+            return days;
+          }
+
+          final teachingDays = calcTeachingDays();
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            title: Row(
+              children: const [
+                Text('📅 ', style: TextStyle(fontSize: 20)),
+                Expanded(
+                  child: Text(
+                    'Semester Timeline & Dates',
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17),
+                  ),
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Configure your semester term start and end dates to accurately calculate teaching days and progression.',
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Start Date Button
+                  const Text('Semester Starting Date', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                  const SizedBox(height: 6),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: tempStart,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2030),
+                      );
+                      if (picked != null) {
+                        setDialogState(() => tempStart = picked);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.event_available_rounded, size: 18, color: AppColors.primary),
+                              const SizedBox(width: 8),
+                              Text(_formatDate(tempStart), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.textPrimary)),
+                            ],
+                          ),
+                          const Text('Change', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // End Date Button
+                  const Text('Semester Ending Date', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                  const SizedBox(height: 6),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: tempEnd,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2030),
+                      );
+                      if (picked != null) {
+                        setDialogState(() => tempEnd = picked);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.event_busy_rounded, size: 18, color: Color(0xFFEF4444)),
+                              const SizedBox(width: 8),
+                              Text(_formatDate(tempEnd), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.textPrimary)),
+                            ],
+                          ),
+                          const Text('Change', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Calculated summary banner
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Text('📊', style: TextStyle(fontSize: 20)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '$teachingDays Total Teaching Days',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF1E40AF)),
+                              ),
+                              const Text(
+                                'Calculated excluding weekend off-days',
+                                style: TextStyle(fontSize: 10, color: Color(0xFF3B82F6), fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              ElevatedButton(
+                onPressed: () {
+                  widget.store.updateSemesterDates(tempStart, tempEnd);
+                  Navigator.pop(ctx);
+                  setState(() {});
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Semester schedule updated! 📅'),
+                      backgroundColor: AppColors.safe,
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                ),
+                child: const Text('Save Timeline', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

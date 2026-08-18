@@ -507,6 +507,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       semestersList.add(selectedSem);
     }
 
+    DateTime tempStart = widget.store.semesterStartDate;
+    DateTime tempEnd = widget.store.semesterEndDate;
+
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -573,6 +576,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     }
                   },
                 ),
+                const SizedBox(height: 14),
+                const Text('Semester Dates Timeline', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppColors.textPrimary)),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: tempStart,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2030),
+                          );
+                          if (picked != null) {
+                            setDialogState(() => tempStart = picked);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Start Date', style: TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
+                              const SizedBox(height: 2),
+                              Text('${tempStart.day}/${tempStart.month}/${tempStart.year}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: tempEnd,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2030),
+                          );
+                          if (picked != null) {
+                            setDialogState(() => tempEnd = picked);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('End Date', style: TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
+                              const SizedBox(height: 2),
+                              Text('${tempEnd.day}/${tempEnd.month}/${tempEnd.year}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -586,6 +661,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   crs: crsCtrl.text.trim().isEmpty ? 'CSE' : crsCtrl.text.trim(),
                   sem: selectedSem,
                 );
+                widget.store.updateSemesterDates(tempStart, tempEnd);
                 Navigator.pop(ctx);
                 setState(() {});
                 ScaffoldMessenger.of(context).showSnackBar(
