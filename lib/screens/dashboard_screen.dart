@@ -36,7 +36,6 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   late DateTime _selectedDate;
-  final List<String> _weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   @override
   void initState() {
@@ -58,9 +57,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final subjects = store.subjects;
     
     final selectedDayName = _getDayName(_selectedDate);
-    final isToday = _selectedDate.year == DateTime.now().year &&
-        _selectedDate.month == DateTime.now().month &&
-        _selectedDate.day == DateTime.now().day;
     final dayRoutine = store.getRoutineForDay(selectedDayName);
     final selectedDateStr = _formatDate(_selectedDate);
 
@@ -556,28 +552,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 children: [
                                   Row(
                                     children: [
-                                      Text(
-                                        isToday ? "Today's Attendance" : "Attendance for $selectedDayName",
-                                        style: const TextStyle(
+                                      const Text(
+                                        "Today's Attendance",
+                                        style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w900,
                                           color: AppColors.textPrimary,
                                         ),
                                       ),
-                                      if (isToday) ...[
-                                        const SizedBox(width: 6),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.safeBg,
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: const Text(
-                                            'LIVE TODAY',
-                                            style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppColors.primary),
-                                          ),
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.safeBg,
+                                          borderRadius: BorderRadius.circular(6),
                                         ),
-                                      ],
+                                        child: const Text(
+                                          'LIVE TODAY',
+                                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppColors.primary),
+                                        ),
+                                      ),
                                     ],
                                   ),
                                   Text(
@@ -586,85 +580,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ),
                                 ],
                               ),
-                              Row(
-                                children: [
-                                  // Quick Date Picker Button
-                                  IconButton(
-                                    icon: Container(
-                                      padding: const EdgeInsets.all(6),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFF1F5F9),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: const Icon(Icons.edit_calendar_rounded, size: 18, color: AppColors.primary),
-                                    ),
-                                    tooltip: 'Pick Custom Date',
-                                    onPressed: () async {
-                                      final picked = await showDatePicker(
-                                        context: context,
-                                        initialDate: _selectedDate,
-                                        firstDate: DateTime(2025, 1, 1),
-                                        lastDate: DateTime(2027, 12, 31),
-                                      );
-                                      if (picked != null) {
-                                        setState(() => _selectedDate = picked);
-                                      }
-                                    },
+                              TextButton(
+                                onPressed: widget.onSeeAllRoutine,
+                                child: const Text(
+                                  'Routine',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.primary,
                                   ),
-                                  TextButton(
-                                    onPressed: widget.onSeeAllRoutine,
-                                    child: const Text(
-                                      'Routine',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ],
-                          ),
-                          const SizedBox(height: 10),
-
-                          // Horizontal Weekday Quick Selector Chips
-                          SizedBox(
-                            height: 34,
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: _weekdays.map((day) {
-                                final isSel = day.toLowerCase() == selectedDayName.toLowerCase();
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 6),
-                                  child: ChoiceChip(
-                                    label: Text(day.substring(0, 3)),
-                                    selected: isSel,
-                                    onSelected: (selected) {
-                                      if (selected) {
-                                        final targetWeekday = _weekdays.indexOf(day) + 1;
-                                        final currentWeekday = DateTime.now().weekday;
-                                        final diff = targetWeekday - currentWeekday;
-                                        setState(() {
-                                          _selectedDate = DateTime.now().add(Duration(days: diff));
-                                        });
-                                      }
-                                    },
-                                    selectedColor: AppColors.primary,
-                                    labelStyle: TextStyle(
-                                      color: isSel ? Colors.white : AppColors.textPrimary,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 11,
-                                    ),
-                                    backgroundColor: const Color(0xFFF8FAFC),
-                                    side: BorderSide(color: isSel ? AppColors.primary : const Color(0xFFE2E8F0)),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                    showCheckmark: false,
-                                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
                           ),
                         ],
                       ),
