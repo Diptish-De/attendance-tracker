@@ -57,13 +57,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   // App Branding Logo
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.15),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Text('🎓', style: TextStyle(fontSize: 18)),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.asset('assets/logo.png', width: 28, height: 28),
                       ),
                       const SizedBox(width: 8),
                       const Text(
