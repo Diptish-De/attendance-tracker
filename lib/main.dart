@@ -13,7 +13,19 @@ import 'screens/marks_screen.dart';
 import 'screens/calendar_screen.dart';
 import 'screens/squad_screen.dart';
 
-void main() {
+import 'services/supabase_config.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Supabase.initialize(
+      url: SupabaseConfig.url,
+      anonKey: SupabaseConfig.anonKey,
+    );
+  } catch (e) {
+    debugPrint('Supabase init note: $e');
+  }
   runApp(const BunkQuestApp());
 }
 
