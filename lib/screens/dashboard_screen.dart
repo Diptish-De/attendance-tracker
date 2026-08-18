@@ -158,8 +158,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   colors: [Color(0xFFA3E635), Color(0xFF22C55E)],
                                 ),
                               ),
-                              child: const Center(
-                                child: Text('🎓', style: TextStyle(fontSize: 22)),
+                              child: Center(
+                                child: Text(store.studentAvatar, style: const TextStyle(fontSize: 22)),
                               ),
                             ),
                             const SizedBox(width: 12),

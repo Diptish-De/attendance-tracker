@@ -82,17 +82,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       child: Column(
                         children: [
-                          Container(
-                            width: 76,
-                            height: 76,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [Color(0xFFA3E635), Color(0xFF22C55E)],
-                              ),
-                            ),
-                            child: const Center(
-                              child: Text('🎓', style: TextStyle(fontSize: 38)),
+                          GestureDetector(
+                            onTap: () => _showAvatarPicker(context),
+                            child: Stack(
+                              children: [
+                                Container(
+                                  width: 76,
+                                  height: 76,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: [Color(0xFFA3E635), Color(0xFF22C55E)],
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(widget.store.studentAvatar, style: const TextStyle(fontSize: 38)),
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.primary,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.camera_alt_rounded,
+                                      color: Colors.white,
+                                      size: 14,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -582,6 +605,82 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showAvatarPicker(BuildContext context) {
+    final avatars = [
+      '🎓', '🧑', '🧑‍🎓', '👨‍🎓', '👩‍🎓', '🦁', '🦊', '🐼', '🐨', '🐯', 
+      '🦖', '👾', '🤖', '🚀', '⭐', '🌈', '⚽', '🎮', '🍕', 
+      '☕', '📚', '👑', '🍀', '🦄', '🎸', '🧁', '🍉', '🎈', '🎨'
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Choose Profile Avatar',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Flexible(
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 6,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                  ),
+                  itemCount: avatars.length,
+                  itemBuilder: (context, index) {
+                    final av = avatars[index];
+                    final isSelected = widget.store.studentAvatar == av;
+                    return GestureDetector(
+                      onTap: () {
+                        widget.store.updateProfile(
+                          widget.store.studentName,
+                          avatar: av,
+                        );
+                        Navigator.pop(context);
+                        setState(() {});
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.primary.withValues(alpha: 0.15) : const Color(0xFFF1F5F9),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isSelected ? AppColors.primary : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            av,
+                            style: const TextStyle(fontSize: 26),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

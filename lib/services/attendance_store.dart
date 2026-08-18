@@ -11,6 +11,7 @@ class AttendanceDataStore extends ChangeNotifier {
   }
 
   String studentName = 'Arjun';
+  String studentAvatar = '🎓';
   String degree = 'B.Tech';
   String course = 'CSE';
   String semester = 'Semester 3';
@@ -42,6 +43,7 @@ class AttendanceDataStore extends ChangeNotifier {
   Future<void> _loadFromPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      studentAvatar = prefs.getString('studentAvatar') ?? '🎓';
       final savedDeg = prefs.getString('degree') ?? 'B.Tech';
       if (savedDeg.contains('·') || savedDeg.contains('Semester') || savedDeg.contains('CSE')) {
         degree = 'B.Tech';
@@ -136,6 +138,7 @@ class AttendanceDataStore extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('studentName', studentName);
+      await prefs.setString('studentAvatar', studentAvatar);
       await prefs.setString('degree', degree);
       await prefs.setString('course', course);
       await prefs.setString('semester', semester);
@@ -288,7 +291,7 @@ class AttendanceDataStore extends ChangeNotifier {
         category: 'Classroom / Batch',
         themeColorHex: '#22C55E',
         members: [
-          SquadMember(id: 'me', name: studentName, avatar: '🎓', attendancePct: overallPercentage, streak: streakDays, estimatedSGPA: cumulativeGPA, statusMessage: 'In Class 💻'),
+          SquadMember(id: 'me', name: studentName, avatar: studentAvatar, attendancePct: overallPercentage, streak: streakDays, estimatedSGPA: cumulativeGPA, statusMessage: 'In Class 💻'),
           SquadMember(id: 'm1', name: 'Rohan Sharma', avatar: '🦁', attendancePct: 82, streak: 14, estimatedSGPA: 8.85, statusMessage: 'In DSA Lab 💻'),
           SquadMember(id: 'm2', name: 'Priya Patel', avatar: '👩‍🔬', attendancePct: 91, streak: 26, estimatedSGPA: 9.40, statusMessage: 'Front row note taker 📚'),
           SquadMember(id: 'm3', name: 'Kabir Verma', avatar: '🕶️', attendancePct: 76, streak: 4, estimatedSGPA: 7.90, statusMessage: 'Bunking DBMS today 🍕'),
@@ -319,7 +322,7 @@ class AttendanceDataStore extends ChangeNotifier {
         category: 'Hostel / Flat',
         themeColorHex: '#8B5CF6',
         members: [
-          SquadMember(id: 'me', name: studentName, avatar: '🎓', attendancePct: overallPercentage, streak: streakDays, estimatedSGPA: cumulativeGPA, statusMessage: 'Hostel Room 402'),
+          SquadMember(id: 'me', name: studentName, avatar: studentAvatar, attendancePct: overallPercentage, streak: streakDays, estimatedSGPA: cumulativeGPA, statusMessage: 'Hostel Room 402'),
           SquadMember(id: 'm1', name: 'Aakash Roy', avatar: '⚡', attendancePct: 78, streak: 8, estimatedSGPA: 8.10, statusMessage: 'Gaming in 405 🎮'),
           SquadMember(id: 'm2', name: 'Dev Sen', avatar: '🎧', attendancePct: 74, streak: 3, estimatedSGPA: 7.60, statusMessage: 'Sleeping 😴'),
         ],
@@ -360,7 +363,7 @@ class AttendanceDataStore extends ChangeNotifier {
       category: 'Peer Study Group',
       themeColorHex: '#3B82F6',
       members: [
-        SquadMember(id: 'me', name: studentName, avatar: '🎓', attendancePct: overallPercentage, streak: streakDays, estimatedSGPA: cumulativeGPA, statusMessage: 'Joined Squad!'),
+        SquadMember(id: 'me', name: studentName, avatar: studentAvatar, attendancePct: overallPercentage, streak: streakDays, estimatedSGPA: cumulativeGPA, statusMessage: 'Joined Squad!'),
         SquadMember(id: 'm1', name: 'Rohan S.', avatar: '🦁', attendancePct: 82, streak: 14, estimatedSGPA: 8.85, statusMessage: 'In Class'),
         SquadMember(id: 'm2', name: 'Priya P.', avatar: '👩‍🔬', attendancePct: 91, streak: 26, estimatedSGPA: 9.40, statusMessage: 'Studying'),
       ],
@@ -386,7 +389,7 @@ class AttendanceDataStore extends ChangeNotifier {
       category: category,
       themeColorHex: colorHex,
       members: [
-        SquadMember(id: 'me', name: studentName, avatar: '🎓', attendancePct: overallPercentage, streak: streakDays, estimatedSGPA: cumulativeGPA, statusMessage: 'Squad Host 👑'),
+        SquadMember(id: 'me', name: studentName, avatar: studentAvatar, attendancePct: overallPercentage, streak: streakDays, estimatedSGPA: cumulativeGPA, statusMessage: 'Squad Host 👑'),
       ],
       messages: [
         ChatMessage(id: 'm_init', senderId: 'system', senderName: 'System', senderAvatar: '🤖', text: 'Room created by $studentName. Share code $code with your classmates!', timestamp: 'Just now', isSystem: true),
@@ -437,7 +440,7 @@ class AttendanceDataStore extends ChangeNotifier {
       id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
       senderId: 'me',
       senderName: studentName,
-      senderAvatar: '🎓',
+      senderAvatar: studentAvatar,
       text: text.trim(),
       timestamp: timeStr,
       isBunkAlert: isBunkAlert,
@@ -666,11 +669,12 @@ class AttendanceDataStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateProfile(String name, {String? deg, String? crs, String? sem}) {
+  void updateProfile(String name, {String? deg, String? crs, String? sem, String? avatar}) {
     studentName = name;
     if (deg != null) degree = deg;
     if (crs != null) course = crs;
     if (sem != null) semester = sem;
+    if (avatar != null) studentAvatar = avatar;
     saveToPreferences();
     notifyListeners();
   }
