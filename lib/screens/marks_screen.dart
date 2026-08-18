@@ -177,11 +177,47 @@ class _MarksScreenState extends State<MarksScreen> {
                     const SizedBox(height: 10),
 
                     // Marks List
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: marksList.length,
-                      itemBuilder: (context, index) {
+                    if (marksList.isEmpty)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: const Color(0xFFF1F5F9)),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Text('📈', style: TextStyle(fontSize: 48)),
+                            SizedBox(height: 12),
+                            Text(
+                              'No Marks Logged Yet',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Create subjects first and then track your grades and internal exam scores here.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: marksList.length,
+                        itemBuilder: (context, index) {
                         final m = marksList[index];
                         final sub = widget.store.subjects.where((s) => s.id == m.subjectId).firstOrNull;
 

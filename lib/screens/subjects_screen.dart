@@ -93,11 +93,53 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
               ),
             ),
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: subjects.length,
-                itemBuilder: (context, index) {
-                  final s = subjects[index];
+              child: subjects.isEmpty
+                  ? Center(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(32),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text('📚', style: TextStyle(fontSize: 64)),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Your Academic Space is Clean',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              'Add your subjects first using the "+" button above to start tracking your attendance percentage, risk status, and marks.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            ElevatedButton.icon(
+                              onPressed: () => _showAddSubjectDialog(context),
+                              icon: const Icon(Icons.add_rounded, color: Colors.white),
+                              label: const Text('Add First Subject', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: subjects.length,
+                      itemBuilder: (context, index) {
+                        final s = subjects[index];
                   final color = AppColors.getRiskColor(s.risk);
                   final bg = AppColors.getRiskBg(s.risk);
                   return Container(

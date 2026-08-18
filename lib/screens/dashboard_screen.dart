@@ -307,17 +307,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 6),
 
                     // Horizontal Subject List
-                    SizedBox(
-                      height: 135,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: subjects.length,
-                        itemBuilder: (context, index) {
-                          final s = subjects[index];
-                          final color = AppColors.getRiskColor(s.risk);
-                          final bg = AppColors.getRiskBg(s.risk);
-                          return GestureDetector(
-                            onTap: () => widget.onSelectSubject(s.id),
+                    if (subjects.isEmpty)
+                      GestureDetector(
+                        onTap: widget.onSeeAllSubjects,
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.03),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              )
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Text('📚', style: TextStyle(fontSize: 32)),
+                              SizedBox(height: 8),
+                              Text(
+                                'No Subjects Added Yet',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              SizedBox(height: 3),
+                              Text(
+                                'Tap here to add subjects & target limits',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      SizedBox(
+                        height: 135,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: subjects.length,
+                          itemBuilder: (context, index) {
+                            final s = subjects[index];
+                            final color = AppColors.getRiskColor(s.risk);
+                            final bg = AppColors.getRiskBg(s.risk);
+                            return GestureDetector(
+                              onTap: () => widget.onSelectSubject(s.id),
                             child: Container(
                               width: 105,
                               margin: const EdgeInsets.only(right: 10),

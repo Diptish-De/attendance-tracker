@@ -15,7 +15,7 @@ class AttendanceDataStore extends ChangeNotifier {
   String degree = 'B.Tech';
   String course = 'CSE';
   String semester = 'Semester 3';
-  int streakDays = 12;
+  int streakDays = 0;
   bool onboardingCompleted = false;
   DateTime semesterStartDate = DateTime(2026, 7, 1);
   DateTime semesterEndDate = DateTime(2026, 12, 15);
@@ -53,7 +53,7 @@ class AttendanceDataStore extends ChangeNotifier {
       }
       course = prefs.getString('course') ?? 'CSE';
       semester = prefs.getString('semester') ?? 'Semester 3';
-      streakDays = prefs.getInt('streakDays') ?? 12;
+      streakDays = prefs.getInt('streakDays') ?? 0;
       onboardingCompleted = prefs.getBool('onboardingCompleted') ?? false;
 
       final subjectsJson = prefs.getString('subjects');
@@ -61,7 +61,11 @@ class AttendanceDataStore extends ChangeNotifier {
         final List list = jsonDecode(subjectsJson);
         subjects = list.map((e) => Subject.fromJson(e)).toList();
       } else {
-        _initDefaultSubjects();
+        if (onboardingCompleted) {
+          _initDefaultSubjects();
+        } else {
+          subjects = [];
+        }
       }
 
       final routineJson = prefs.getString('routine');
@@ -69,7 +73,11 @@ class AttendanceDataStore extends ChangeNotifier {
         final List list = jsonDecode(routineJson);
         routine = list.map((e) => RoutineSlot.fromJson(e)).toList();
       } else {
-        _initDefaultRoutine();
+        if (onboardingCompleted) {
+          _initDefaultRoutine();
+        } else {
+          routine = [];
+        }
       }
 
       final marksJson = prefs.getString('marks');
@@ -77,7 +85,11 @@ class AttendanceDataStore extends ChangeNotifier {
         final List list = jsonDecode(marksJson);
         marks = list.map((e) => SubjectMarks.fromJson(e)).toList();
       } else {
-        _initDefaultMarks();
+        if (onboardingCompleted) {
+          _initDefaultMarks();
+        } else {
+          marks = [];
+        }
       }
 
       final achievementsJson = prefs.getString('achievements');
@@ -86,6 +98,11 @@ class AttendanceDataStore extends ChangeNotifier {
         achievements = list.map((e) => Achievement.fromJson(e)).toList();
       } else {
         _initDefaultAchievements();
+        if (!onboardingCompleted) {
+          for (final a in achievements) {
+            a.unlocked = false;
+          }
+        }
       }
 
       final leavesJson = prefs.getString('leaves');
@@ -93,7 +110,11 @@ class AttendanceDataStore extends ChangeNotifier {
         final List list = jsonDecode(leavesJson);
         leaveHistory = list.map((e) => LeaveItem.fromJson(e)).toList();
       } else {
-        _initDefaultLeaves();
+        if (onboardingCompleted) {
+          _initDefaultLeaves();
+        } else {
+          leaveHistory = [];
+        }
       }
 
       final leaveCatJson = prefs.getString('leaveCategories');
@@ -102,6 +123,15 @@ class AttendanceDataStore extends ChangeNotifier {
         leaveCategories = list.map((e) => LeaveCategory.fromJson(e)).toList();
       } else {
         _initDefaultLeaveCategories();
+        if (!onboardingCompleted) {
+          leaveCategories = leaveCategories.map((c) => LeaveCategory(
+            name: c.name,
+            icon: c.icon,
+            available: c.total,
+            used: 0,
+            total: c.total,
+          )).toList();
+        }
       }
 
       activeSquadId = prefs.getString('activeSquadId');
@@ -110,7 +140,11 @@ class AttendanceDataStore extends ChangeNotifier {
         final List list = jsonDecode(squadListJson);
         squadGroups = list.map((e) => SquadGroup.fromJson(e)).toList();
       } else {
-        _initDefaultSquad();
+        if (onboardingCompleted) {
+          _initDefaultSquad();
+        } else {
+          squadGroups = [];
+        }
       }
 
       final dailyNotesJson = prefs.getString('dailyNotes');
