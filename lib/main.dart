@@ -22,6 +22,7 @@ void main() async {
     await Supabase.initialize(
       url: SupabaseConfig.url,
       anonKey: SupabaseConfig.anonKey,
+      debug: false,
     );
   } catch (e) {
     debugPrint('Supabase init note: $e');

@@ -264,9 +264,78 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete_outline_rounded, color: AppColors.critical),
+                      tooltip: 'Delete Subject',
                       onPressed: () {
-                        widget.store.deleteSubject(s.id);
-                        setState(() => _selectedSubjectId = null);
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            title: const Text('Delete Subject?', style: TextStyle(fontWeight: FontWeight.w900)),
+                            content: Text(
+                              'Are you sure you want to delete ${s.name}? All attendance logs and marks for this subject will be removed.',
+                              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w700)),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(ctx);
+                                  // Capture copy for 10-second Undo
+                                  final deletedSubject = s;
+                                  final subjectMarks = widget.store.marks.where((m) => m.subjectId == s.id).firstOrNull;
+                                  final routineSlots = widget.store.routine.where((r) => r.subjectId == s.id).toList();
+                                  final subjectIndex = widget.store.subjects.indexOf(s);
+
+                                  widget.store.deleteSubject(s.id);
+                                  setState(() => _selectedSubjectId = null);
+
+                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      duration: const Duration(seconds: 10),
+                                      backgroundColor: const Color(0xFF1E293B),
+                                      behavior: SnackBarBehavior.floating,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      content: Row(
+                                        children: [
+                                          const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 18),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              'Deleted ${deletedSubject.name}',
+                                              style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.white),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      action: SnackBarAction(
+                                        label: 'UNDO (10s)',
+                                        textColor: AppColors.primary,
+                                        onPressed: () {
+                                          widget.store.restoreSubject(
+                                            deletedSubject,
+                                            m: subjectMarks,
+                                            slots: routineSlots,
+                                            index: subjectIndex,
+                                          );
+                                          setState(() => _selectedSubjectId = deletedSubject.id);
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.critical,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                              ),
+                            ],
+                          ),
+                        );
                       },
                     ),
                   ],
@@ -829,16 +898,66 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
 
                                 const SizedBox(width: 4),
 
-                                // Delete/Undo entry
+                                // Delete/Undo entry with confirmation & 10s undo
                                 IconButton(
                                   icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Color(0xFF94A3B8)),
                                   tooltip: 'Remove Entry',
                                   onPressed: () {
-                                    widget.store.deleteAttendanceRecord(s.id, idx);
-                                    setModalState(() {});
-                                    setState(() {});
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Removed attendance register entry')),
+                                    showDialog(
+                                      context: context,
+                                      builder: (dialogCtx) => AlertDialog(
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                        title: const Text('Remove Attendance Entry?', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                                        content: Text(
+                                          'Delete entry for ${h.date} (${h.status.toUpperCase()} • ${h.periods} period${h.periods > 1 ? 's' : ''})?',
+                                          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(dialogCtx),
+                                            child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w700)),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.pop(dialogCtx);
+                                              final deletedRecord = h;
+                                              final deletedIdx = idx;
+
+                                              widget.store.deleteAttendanceRecord(s.id, deletedIdx);
+                                              setModalState(() {});
+                                              setState(() {});
+
+                                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  duration: const Duration(seconds: 10),
+                                                  backgroundColor: const Color(0xFF1E293B),
+                                                  behavior: SnackBarBehavior.floating,
+                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                  content: Text(
+                                                    'Removed entry for ${deletedRecord.date}',
+                                                    style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.white),
+                                                  ),
+                                                  action: SnackBarAction(
+                                                    label: 'UNDO (10s)',
+                                                    textColor: AppColors.primary,
+                                                    onPressed: () {
+                                                      widget.store.restoreAttendanceRecord(s.id, deletedRecord, deletedIdx);
+                                                      setModalState(() {});
+                                                      setState(() {});
+                                                    },
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: AppColors.critical,
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                            ),
+                                            child: const Text('Remove', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                                          ),
+                                        ],
+                                      ),
                                     );
                                   },
                                 ),

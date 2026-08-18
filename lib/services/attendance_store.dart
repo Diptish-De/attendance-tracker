@@ -684,6 +684,23 @@ class AttendanceDataStore extends ChangeNotifier {
     }
   }
 
+  void restoreAttendanceRecord(String subjectId, AttendanceRecord record, int index) {
+    final s = subjects.where((item) => item.id == subjectId).firstOrNull;
+    if (s != null) {
+      if (index >= 0 && index <= s.history.length) {
+        s.history.insert(index, record);
+      } else {
+        s.history.add(record);
+      }
+      if (record.status.toLowerCase() == 'present') {
+        s.attended += record.periods;
+      }
+      s.total += record.periods;
+      saveToPreferences();
+      notifyListeners();
+    }
+  }
+
   void addSubject(String name, String faculty, String icon, int attended, int total, double minReq) {
     final id = name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
     subjects.add(Subject(
@@ -697,6 +714,24 @@ class AttendanceDataStore extends ChangeNotifier {
     ));
     marks.add(SubjectMarks(subjectId: id, subjectName: name));
     _checkAchievements();
+    saveToPreferences();
+    notifyListeners();
+  }
+
+  void restoreSubject(Subject s, {SubjectMarks? m, List<RoutineSlot>? slots, int? index}) {
+    if (index != null && index >= 0 && index <= subjects.length) {
+      subjects.insert(index, s);
+    } else {
+      subjects.add(s);
+    }
+    if (m != null) {
+      marks.add(m);
+    } else {
+      marks.add(SubjectMarks(subjectId: s.id, subjectName: s.name));
+    }
+    if (slots != null && slots.isNotEmpty) {
+      routine.addAll(slots);
+    }
     saveToPreferences();
     notifyListeners();
   }

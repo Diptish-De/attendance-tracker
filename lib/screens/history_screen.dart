@@ -327,15 +327,65 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
                               const SizedBox(width: 4),
 
-                              // Delete Action
+                              // Delete Action with confirmation and 10s undo
                               IconButton(
                                 icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Color(0xFF94A3B8)),
                                 tooltip: 'Remove Entry',
                                 onPressed: () {
-                                  widget.store.deleteAttendanceRecord(log.subject.id, log.historyIndex);
-                                  setState(() {});
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Removed attendance register entry')),
+                                  showDialog(
+                                    context: context,
+                                    builder: (dialogCtx) => AlertDialog(
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                      title: const Text('Remove Attendance Entry?', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                                      content: Text(
+                                        'Delete ${log.subject.name} entry for ${h.date} (${h.status.toUpperCase()} • ${h.periods} period${h.periods > 1 ? 's' : ''})?',
+                                        style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(dialogCtx),
+                                          child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w700)),
+                                        ),
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.pop(dialogCtx);
+                                            final deletedRecord = h;
+                                            final deletedIdx = log.historyIndex;
+                                            final targetSubjectId = log.subject.id;
+
+                                            widget.store.deleteAttendanceRecord(targetSubjectId, deletedIdx);
+                                            setState(() {});
+
+                                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                duration: const Duration(seconds: 10),
+                                                backgroundColor: const Color(0xFF1E293B),
+                                                behavior: SnackBarBehavior.floating,
+                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                content: Text(
+                                                  'Removed entry for ${log.subject.name} (${deletedRecord.date})',
+                                                  style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.white),
+                                                ),
+                                                action: SnackBarAction(
+                                                  label: 'UNDO (10s)',
+                                                  textColor: AppColors.primary,
+                                                  onPressed: () {
+                                                    widget.store.restoreAttendanceRecord(targetSubjectId, deletedRecord, deletedIdx);
+                                                    setState(() {});
+                                                  },
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: AppColors.critical,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                          ),
+                                          child: const Text('Remove', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                                        ),
+                                      ],
+                                    ),
                                   );
                                 },
                               ),
