@@ -15,11 +15,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Set up Java JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '17'
 
       - name: Set up Flutter
@@ -28,6 +30,11 @@ jobs:
           flutter-version: '3.29.0'
           channel: 'stable'
           cache: true
+
+      - name: Generate local.properties
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          echo "flutter.sdk=$FLUTTER_ROOT" >> android/local.properties
 
       - name: Install dependencies
         run: flutter pub get
@@ -50,8 +57,8 @@ jobs:
           body: |
             ### 🎓 BunkQuest - Attendance & Academic OS
             
-            **Direct APK Download Link:**
-            👉 Click below under Assets to download `app-release.apk` directly to your Android device!
+            **Direct APK Download:**
+            👉 Download `app-release.apk` from Assets below and install on your Android device!
             
             - 📊 Live Attendance & Safe Bunk Simulator
             - 📜 Historical Register & 10s Undo Safety
