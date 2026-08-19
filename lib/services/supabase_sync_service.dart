@@ -26,18 +26,79 @@ class SupabaseSyncService {
     if (client == null) return;
 
     try {
-      // 1. Sync User Profile to Supabase
+      // 1. Restore from Cloud if local subjects are empty
+      await restoreFromCloudIfEmpty();
+
+      // 2. Sync User Profile to Supabase
       await syncProfileToCloud();
 
-      // 2. Clean up server-side expired records older than 24h
+      // 3. Clean up server-side expired records older than 24h
       await cleanup24hExpiredData();
 
-      // 3. Subscribe to active squad room
+      // 4. Subscribe to active squad room
       if (store.activeSquad != null) {
         subscribeToSquadRoom(store.activeSquad!.id);
       }
     } catch (e) {
       debugPrint('Supabase auto-sync note: $e');
+    }
+  }
+
+  /// Restore subjects and logs from Supabase cloud if local storage was empty
+  Future<void> restoreFromCloudIfEmpty() async {
+    final client = _client;
+    if (client == null) return;
+
+    try {
+      final studentId = store.studentName.toLowerCase().replaceAll(' ', '_');
+      
+      if (store.subjects.isEmpty) {
+        final List<dynamic> remoteSubjects = await client
+            .from('subjects')
+            .select()
+            .eq('student_id', studentId);
+
+        if (remoteSubjects.isNotEmpty) {
+          final List<Subject> loaded = [];
+          for (final row in remoteSubjects) {
+            final subId = row['subject_id'] as String? ?? 'sub';
+            
+            final List<dynamic> remoteLogs = await client
+                .from('attendance_logs')
+                .select()
+                .eq('student_id', studentId)
+                .eq('subject_id', subId)
+                .order('created_at', ascending: true);
+
+            final history = remoteLogs.map((l) => AttendanceRecord(
+              date: l['date'] ?? '',
+              day: l['day'] ?? '',
+              time: l['time'] ?? '',
+              periods: l['periods'] ?? 1,
+              status: l['status'] ?? 'Present',
+              note: l['note'],
+            )).toList();
+
+            loaded.add(Subject(
+              id: subId,
+              name: row['name'] ?? '',
+              faculty: row['faculty'] ?? '',
+              icon: row['icon'] ?? '📘',
+              attended: row['attended'] ?? 0,
+              total: row['total'] ?? 0,
+              minRequiredPercentage: (row['min_req_pct'] as num?)?.toDouble() ?? 75.0,
+              history: history,
+            ));
+          }
+
+          if (loaded.isNotEmpty) {
+            store.subjects = loaded;
+            await store.saveToPreferences();
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Cloud restore note: $e');
     }
   }
 

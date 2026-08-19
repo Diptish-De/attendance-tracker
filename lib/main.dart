@@ -28,23 +28,34 @@ void main() async {
   } catch (e) {
     debugPrint('Supabase init note: $e');
   }
-  runApp(const BunkQuestApp());
+
+  // 1. Initialize persistent storage before first UI frame
+  final store = AttendanceDataStore();
+  await store.init();
+
+  // 2. Setup real-time cloud database synchronization
+  final syncService = SupabaseSyncService(store);
+  store.onDataChanged = () {
+    syncService.syncAllAttendanceDataToCloud();
+    syncService.syncProfileToCloud();
+  };
+
+  runApp(BunkQuestApp(store: store));
 }
 
 class BunkQuestApp extends StatefulWidget {
-  const BunkQuestApp({super.key});
+  final AttendanceDataStore store;
+  const BunkQuestApp({super.key, required this.store});
 
   @override
   State<BunkQuestApp> createState() => _BunkQuestAppState();
 }
 
 class _BunkQuestAppState extends State<BunkQuestApp> {
-  final AttendanceDataStore _store = AttendanceDataStore();
-
   @override
   void initState() {
     super.initState();
-    _store.addListener(() => setState(() {}));
+    widget.store.addListener(() => setState(() {}));
   }
 
   @override
@@ -64,20 +75,21 @@ class _BunkQuestAppState extends State<BunkQuestApp> {
         ),
         textTheme: GoogleFonts.nunitoTextTheme(),
       ),
-      home: !_store.onboardingCompleted
+      home: !widget.store.onboardingCompleted
           ? OnboardingScreen(
-              store: _store,
+              store: widget.store,
               onFinish: () {
                 setState(() {});
               },
             )
-          : const MainNavigationScreen(),
+          : MainNavigationScreen(store: widget.store),
     );
   }
 }
 
 class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({super.key});
+  final AttendanceDataStore store;
+  const MainNavigationScreen({super.key, required this.store});
 
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
@@ -87,19 +99,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
   String? _targetSimulatorSubjectId;
   String? _selectedSubjectIdForDetail;
-  final AttendanceDataStore _store = AttendanceDataStore();
+  AttendanceDataStore get _store => widget.store;
   late final SupabaseSyncService _syncService;
 
   @override
   void initState() {
     super.initState();
-    _syncService = SupabaseSyncService(_store);
-    _store.addListener(_onStoreUpdate);
+    _syncService = SupabaseSyncService(widget.store);
+    widget.store.addListener(_onStoreUpdate);
   }
 
   @override
   void dispose() {
-    _store.removeListener(_onStoreUpdate);
+    widget.store.removeListener(_onStoreUpdate);
     super.dispose();
   }
 

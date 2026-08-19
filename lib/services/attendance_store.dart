@@ -6,9 +6,10 @@ import '../models/models.dart';
 class AttendanceDataStore extends ChangeNotifier {
   static final AttendanceDataStore _instance = AttendanceDataStore._internal();
   factory AttendanceDataStore() => _instance;
-  AttendanceDataStore._internal() {
-    _loadFromPreferences();
-  }
+  AttendanceDataStore._internal();
+
+  bool isInitialized = false;
+  VoidCallback? onDataChanged;
 
   String studentName = 'Arjun';
   String studentAvatar = '🎓';
@@ -41,10 +42,20 @@ class AttendanceDataStore extends ChangeNotifier {
     return squadGroups.where((s) => s.id == activeSquadId).firstOrNull ?? squadGroups.first;
   }
 
+  Future<void> init() async {
+    if (isInitialized) return;
+    await _loadFromPreferences();
+    isInitialized = true;
+    notifyListeners();
+  }
+
   Future<void> _loadFromPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      
+      studentName = prefs.getString('studentName') ?? studentName;
       studentAvatar = prefs.getString('studentAvatar') ?? '🎓';
+      
       final savedDeg = prefs.getString('degree') ?? 'B.Tech';
       if (savedDeg.contains('·') || savedDeg.contains('Semester') || savedDeg.contains('CSE')) {
         degree = 'B.Tech';
@@ -65,111 +76,133 @@ class AttendanceDataStore extends ChangeNotifier {
         semesterEndDate = DateTime.tryParse(endStr) ?? semesterEndDate;
       }
 
-      final subjectsJson = prefs.getString('subjects');
-      if (subjectsJson != null) {
-        final List list = jsonDecode(subjectsJson);
-        subjects = list.map((e) => Subject.fromJson(e)).toList();
-      } else {
-        if (onboardingCompleted) {
-          _initDefaultSubjects();
+      // Safe load: Subjects
+      try {
+        final subjectsJson = prefs.getString('subjects');
+        if (subjectsJson != null) {
+          final List list = jsonDecode(subjectsJson);
+          subjects = list.map((e) => Subject.fromJson(e)).toList();
         } else {
           subjects = [];
         }
+      } catch (e) {
+        debugPrint('Error loading subjects: $e');
+        subjects = [];
       }
 
-      final routineJson = prefs.getString('routine');
-      if (routineJson != null) {
-        final List list = jsonDecode(routineJson);
-        routine = list.map((e) => RoutineSlot.fromJson(e)).toList();
-      } else {
-        if (onboardingCompleted) {
-          _initDefaultRoutine();
+      // Safe load: Routine
+      try {
+        final routineJson = prefs.getString('routine');
+        if (routineJson != null) {
+          final List list = jsonDecode(routineJson);
+          routine = list.map((e) => RoutineSlot.fromJson(e)).toList();
         } else {
           routine = [];
         }
+      } catch (e) {
+        debugPrint('Error loading routine: $e');
+        routine = [];
       }
 
-      final marksJson = prefs.getString('marks');
-      if (marksJson != null) {
-        final List list = jsonDecode(marksJson);
-        marks = list.map((e) => SubjectMarks.fromJson(e)).toList();
-      } else {
-        if (onboardingCompleted) {
-          _initDefaultMarks();
+      // Safe load: Marks
+      try {
+        final marksJson = prefs.getString('marks');
+        if (marksJson != null) {
+          final List list = jsonDecode(marksJson);
+          marks = list.map((e) => SubjectMarks.fromJson(e)).toList();
         } else {
           marks = [];
         }
+      } catch (e) {
+        debugPrint('Error loading marks: $e');
+        marks = [];
       }
 
-      final achievementsJson = prefs.getString('achievements');
-      if (achievementsJson != null) {
-        final List list = jsonDecode(achievementsJson);
-        achievements = list.map((e) => Achievement.fromJson(e)).toList();
-      } else {
-        _initDefaultAchievements();
-        if (!onboardingCompleted) {
-          for (final a in achievements) {
-            a.unlocked = false;
+      // Safe load: Achievements
+      try {
+        final achievementsJson = prefs.getString('achievements');
+        if (achievementsJson != null) {
+          final List list = jsonDecode(achievementsJson);
+          achievements = list.map((e) => Achievement.fromJson(e)).toList();
+        } else {
+          _initDefaultAchievements();
+          if (!onboardingCompleted) {
+            for (final a in achievements) {
+              a.unlocked = false;
+            }
           }
         }
+      } catch (e) {
+        _initDefaultAchievements();
       }
 
-      final leavesJson = prefs.getString('leaves');
-      if (leavesJson != null) {
-        final List list = jsonDecode(leavesJson);
-        leaveHistory = list.map((e) => LeaveItem.fromJson(e)).toList();
-      } else {
-        if (onboardingCompleted) {
-          _initDefaultLeaves();
+      // Safe load: Leaves
+      try {
+        final leavesJson = prefs.getString('leaves');
+        if (leavesJson != null) {
+          final List list = jsonDecode(leavesJson);
+          leaveHistory = list.map((e) => LeaveItem.fromJson(e)).toList();
         } else {
           leaveHistory = [];
         }
+      } catch (e) {
+        leaveHistory = [];
       }
 
-      final leaveCatJson = prefs.getString('leaveCategories');
-      if (leaveCatJson != null) {
-        final List list = jsonDecode(leaveCatJson);
-        leaveCategories = list.map((e) => LeaveCategory.fromJson(e)).toList();
-      } else {
-        _initDefaultLeaveCategories();
-        if (!onboardingCompleted) {
-          leaveCategories = leaveCategories.map((c) => LeaveCategory(
-            name: c.name,
-            icon: c.icon,
-            available: c.total,
-            used: 0,
-            total: c.total,
-          )).toList();
+      // Safe load: Leave Categories
+      try {
+        final leaveCatJson = prefs.getString('leaveCategories');
+        if (leaveCatJson != null) {
+          final List list = jsonDecode(leaveCatJson);
+          leaveCategories = list.map((e) => LeaveCategory.fromJson(e)).toList();
+        } else {
+          _initDefaultLeaveCategories();
+          if (!onboardingCompleted) {
+            leaveCategories = leaveCategories.map((c) => LeaveCategory(
+              name: c.name,
+              icon: c.icon,
+              available: c.total,
+              used: 0,
+              total: c.total,
+            )).toList();
+          }
         }
+      } catch (e) {
+        _initDefaultLeaveCategories();
       }
 
-      activeSquadId = prefs.getString('activeSquadId');
-      final squadListJson = prefs.getString('squadGroups');
-      if (squadListJson != null) {
-        final List list = jsonDecode(squadListJson);
-        squadGroups = list.map((e) => SquadGroup.fromJson(e)).toList();
-      } else {
-        if (onboardingCompleted) {
-          _initDefaultSquad();
+      // Safe load: Squad Groups
+      try {
+        activeSquadId = prefs.getString('activeSquadId');
+        final squadListJson = prefs.getString('squadGroups');
+        if (squadListJson != null) {
+          final List list = jsonDecode(squadListJson);
+          squadGroups = list.map((e) => SquadGroup.fromJson(e)).toList();
         } else {
           squadGroups = [];
         }
+      } catch (e) {
+        squadGroups = [];
       }
 
-      final dailyNotesJson = prefs.getString('dailyNotes');
-      if (dailyNotesJson != null) {
-        final Map<String, dynamic> decoded = jsonDecode(dailyNotesJson);
-        dailyNotes = decoded.map((key, value) => MapEntry(key, value.toString()));
-      } else {
+      // Safe load: Daily Notes
+      try {
+        final dailyNotesJson = prefs.getString('dailyNotes');
+        if (dailyNotesJson != null) {
+          final Map<String, dynamic> decoded = jsonDecode(dailyNotesJson);
+          dailyNotes = decoded.map((key, value) => MapEntry(key, value.toString()));
+        } else {
+          dailyNotes = {};
+        }
+      } catch (e) {
         dailyNotes = {};
       }
 
       // Auto-delete chats and polls older than 24 hours
       _cleanupExpiredSquadData();
     } catch (e) {
-      _initAllDefaults();
+      debugPrint('Preferences load error: $e');
     }
-    notifyListeners();
   }
 
   void _cleanupExpiredSquadData() {
@@ -202,7 +235,11 @@ class AttendanceDataStore extends ChangeNotifier {
       if (activeSquadId != null) {
         await prefs.setString('activeSquadId', activeSquadId!);
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Save preferences error: $e');
+    }
+    onDataChanged?.call();
+    notifyListeners();
   }
 
   void _initAllDefaults() {
