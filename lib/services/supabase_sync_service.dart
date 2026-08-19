@@ -102,6 +102,20 @@ class SupabaseSyncService {
     }
   }
 
+  /// Delete a specific subject and its attendance logs from Supabase cloud database
+  Future<void> deleteSubjectFromCloud(String subjectId) async {
+    final client = _client;
+    if (client == null) return;
+
+    try {
+      final studentId = store.studentName.toLowerCase().replaceAll(' ', '_');
+      await client.from('subjects').delete().eq('student_id', studentId).eq('subject_id', subjectId);
+      await client.from('attendance_logs').delete().eq('student_id', studentId).eq('subject_id', subjectId);
+    } catch (e) {
+      debugPrint('Cloud subject delete note: $e');
+    }
+  }
+
   /// Clean up messages and polls older than 24 hours in Supabase
   Future<void> cleanup24hExpiredData() async {
     final client = _client;
@@ -149,8 +163,28 @@ class SupabaseSyncService {
     final studentId = store.studentName.toLowerCase().replaceAll(' ', '_');
 
     try {
+      final currentSubjectIds = store.subjects.map((s) => s.id).toSet();
+
+      // 1. Purge deleted subjects from Supabase cloud database
+      try {
+        final List<dynamic> remoteSubjects = await client
+            .from('subjects')
+            .select('subject_id')
+            .eq('student_id', studentId);
+
+        for (final remote in remoteSubjects) {
+          final rId = remote['subject_id'] as String?;
+          if (rId != null && !currentSubjectIds.contains(rId)) {
+            await client.from('subjects').delete().eq('student_id', studentId).eq('subject_id', rId);
+            await client.from('attendance_logs').delete().eq('student_id', studentId).eq('subject_id', rId);
+          }
+        }
+      } catch (e) {
+        debugPrint('Remote subject purge note: $e');
+      }
+
+      // 2. Upsert current local subjects
       for (final s in store.subjects) {
-        // 1. Upsert Subject
         await client.from('subjects').upsert({
           'id': '${studentId}_${s.id}',
           'student_id': studentId,
@@ -164,7 +198,7 @@ class SupabaseSyncService {
           'updated_at': DateTime.now().toIso8601String(),
         });
 
-        // 2. Upsert Individual Attendance Session Logs
+        // 3. Upsert Individual Attendance Session Logs
         for (int i = 0; i < s.history.length; i++) {
           final h = s.history[i];
           final logId = '${studentId}_${s.id}_${h.date.replaceAll(' ', '_').replaceAll(',', '')}_$i';

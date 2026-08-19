@@ -242,181 +242,22 @@ class AttendanceDataStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _initAllDefaults() {
-    _initDefaultSubjects();
-    _initDefaultRoutine();
-    _initDefaultMarks();
-    _initDefaultAchievements();
-    _initDefaultLeaves();
-    _initDefaultLeaveCategories();
-  }
-
-  void _initDefaultSubjects() {
-    subjects = [
-      Subject(id: 'dsa', name: 'DSA', icon: '🌐', faculty: 'Prof. Sharma', attended: 34, total: 40, minRequiredPercentage: 75),
-      Subject(id: 'oop', name: 'OOP', icon: '🧩', faculty: 'Dr. Mehta', attended: 28, total: 37, minRequiredPercentage: 75),
-      Subject(id: 'dm', name: 'DM', icon: '∑', faculty: 'Prof. Gupta', attended: 29, total: 33, minRequiredPercentage: 75),
-      Subject(id: 'dsco', name: 'DSCO', icon: '⚙️', faculty: 'Dr. Verma', attended: 17, total: 23, minRequiredPercentage: 75),
-      Subject(id: 'dbms', name: 'DBMS', icon: '🗄️', faculty: 'Dr. Nair', attended: 15, total: 22, minRequiredPercentage: 75),
-    ];
-  }
-
-  void _initDefaultRoutine() {
-    routine = [
-      RoutineSlot(id: 'r1', day: 'Monday', subjectName: 'DSA', subjectId: 'dsa', startTime: '09:00 AM', endTime: '10:00 AM', room: 'LH-101', faculty: 'Prof. Sharma'),
-      RoutineSlot(id: 'r2', day: 'Monday', subjectName: 'OOP', subjectId: 'oop', startTime: '10:15 AM', endTime: '11:15 AM', room: 'Lab-2', faculty: 'Dr. Mehta'),
-      RoutineSlot(id: 'r3', day: 'Monday', subjectName: 'DBMS', subjectId: 'dbms', startTime: '11:30 AM', endTime: '12:30 PM', room: 'LH-104', faculty: 'Dr. Nair'),
-      RoutineSlot(id: 'r4', day: 'Tuesday', subjectName: 'DM', subjectId: 'dm', startTime: '09:30 AM', endTime: '10:30 AM', room: 'LH-102', faculty: 'Prof. Gupta'),
-      RoutineSlot(id: 'r5', day: 'Tuesday', subjectName: 'DSCO', subjectId: 'dsco', startTime: '11:00 AM', endTime: '12:00 PM', room: 'LH-105', faculty: 'Dr. Verma'),
-      RoutineSlot(id: 'r6', day: 'Wednesday', subjectName: 'DSA', subjectId: 'dsa', startTime: '10:00 AM', endTime: '11:00 AM', room: 'LH-101', faculty: 'Prof. Sharma'),
-      RoutineSlot(id: 'r7', day: 'Wednesday', subjectName: 'OOP', subjectId: 'oop', startTime: '02:00 PM', endTime: '04:00 PM', room: 'Computing Lab', faculty: 'Dr. Mehta'),
-      RoutineSlot(id: 'r8', day: 'Thursday', subjectName: 'DM', subjectId: 'dm', startTime: '09:00 AM', endTime: '10:00 AM', room: 'LH-102', faculty: 'Prof. Gupta'),
-      RoutineSlot(id: 'r9', day: 'Thursday', subjectName: 'DBMS', subjectId: 'dbms', startTime: '10:15 AM', endTime: '11:15 AM', room: 'LH-104', faculty: 'Dr. Nair'),
-      RoutineSlot(id: 'r10', day: 'Friday', subjectName: 'DSCO', subjectId: 'dsco', startTime: '09:00 AM', endTime: '10:00 AM', room: 'LH-105', faculty: 'Dr. Verma'),
-      RoutineSlot(id: 'r11', day: 'Friday', subjectName: 'DSA', subjectId: 'dsa', startTime: '11:15 AM', endTime: '12:15 PM', room: 'LH-101', faculty: 'Prof. Sharma'),
-    ];
-  }
-
-  void _initDefaultMarks() {
-    marks = [
-      SubjectMarks(
-        subjectId: 'dsa',
-        subjectName: 'DSA',
-        credits: 4,
-        assessments: [
-          ExamAssessment(id: 'cia1', name: 'CIA 1', obtainedMarks: 18, maxMarks: 20),
-          ExamAssessment(id: 'cia2', name: 'CIA 2', obtainedMarks: 19, maxMarks: 20),
-          ExamAssessment(id: 'cia3', name: 'CIA 3', obtainedMarks: 17, maxMarks: 20),
-          ExamAssessment(id: 'endsem', name: 'End Sem', obtainedMarks: 88, maxMarks: 100),
-        ],
-      ),
-      SubjectMarks(
-        subjectId: 'oop',
-        subjectName: 'OOP',
-        credits: 4,
-        assessments: [
-          ExamAssessment(id: 'cia1', name: 'CIA 1', obtainedMarks: 16, maxMarks: 20),
-          ExamAssessment(id: 'cia2', name: 'CIA 2', obtainedMarks: 17.5, maxMarks: 20),
-          ExamAssessment(id: 'cia3', name: 'CIA 3', obtainedMarks: 18, maxMarks: 20),
-          ExamAssessment(id: 'endsem', name: 'End Sem', obtainedMarks: 82, maxMarks: 100),
-        ],
-      ),
-      SubjectMarks(
-        subjectId: 'dm',
-        subjectName: 'DM',
-        credits: 3,
-        assessments: [
-          ExamAssessment(id: 'cia1', name: 'CIA 1', obtainedMarks: 19, maxMarks: 20),
-          ExamAssessment(id: 'cia2', name: 'CIA 2', obtainedMarks: 20, maxMarks: 20),
-          ExamAssessment(id: 'cia3', name: 'CIA 3', obtainedMarks: 18.5, maxMarks: 20),
-          ExamAssessment(id: 'endsem', name: 'End Sem', obtainedMarks: 91, maxMarks: 100),
-        ],
-      ),
-      SubjectMarks(
-        subjectId: 'dsco',
-        subjectName: 'DSCO',
-        credits: 3,
-        assessments: [
-          ExamAssessment(id: 'cia1', name: 'CIA 1', obtainedMarks: 14, maxMarks: 20),
-          ExamAssessment(id: 'cia2', name: 'CIA 2', obtainedMarks: 15, maxMarks: 20),
-          ExamAssessment(id: 'cia3', name: 'CIA 3', obtainedMarks: 13.5, maxMarks: 20),
-          ExamAssessment(id: 'endsem', name: 'End Sem', obtainedMarks: 74, maxMarks: 100),
-        ],
-      ),
-      SubjectMarks(
-        subjectId: 'dbms',
-        subjectName: 'DBMS',
-        credits: 4,
-        assessments: [
-          ExamAssessment(id: 'cia1', name: 'CIA 1', obtainedMarks: 15, maxMarks: 20),
-          ExamAssessment(id: 'cia2', name: 'CIA 2', obtainedMarks: 16.5, maxMarks: 20),
-          ExamAssessment(id: 'cia3', name: 'CIA 3', obtainedMarks: 16, maxMarks: 20),
-          ExamAssessment(id: 'endsem', name: 'End Sem', obtainedMarks: 79, maxMarks: 100),
-        ],
-      ),
-    ];
-  }
-
   void _initDefaultAchievements() {
     achievements = [
-      Achievement(id: 'lab', icon: '🔬', title: 'Lab Guardian', desc: '100% lab attendance', unlocked: true),
-      Achievement(id: 'week', icon: '⚡', title: 'Perfect Week', desc: 'All classes for one week', unlocked: true),
-      Achievement(id: 'bunker', icon: '🎯', title: 'Pro Bunker', desc: 'Maintain 75%+ all semester', unlocked: false),
-      Achievement(id: 'recovery', icon: '💪', title: 'Recovery Master', desc: 'Recovered from below 70%', unlocked: false),
-      Achievement(id: 'streak', icon: '🔥', title: '10-Day Streak', desc: '10 days attended consecutively', unlocked: true),
-      Achievement(id: 'ghost', icon: '👻', title: 'Ghost Mode', desc: '5 strategic skips in a week', unlocked: false),
-    ];
-  }
-
-  void _initDefaultLeaves() {
-    leaveHistory = [
-      LeaveItem(id: 1, type: 'Annual Leave', dates: 'May 05 – May 07, 2026', days: 3, status: 'Approved'),
-      LeaveItem(id: 2, type: 'Sick Leave', dates: 'Apr 21, 2026', days: 1, status: 'Pending'),
-      LeaveItem(id: 3, type: 'Casual Leave', dates: 'Mar 14, 2026', days: 2, status: 'Approved'),
+      Achievement(id: 'first', icon: '🎯', title: 'First Step', desc: 'Add your first real subject', unlocked: subjects.isNotEmpty),
+      Achievement(id: 'streak', icon: '🔥', title: 'On Fire', desc: 'Maintain 5-day attendance streak', unlocked: streakDays >= 5),
+      Achievement(id: 'safe', icon: '🛡️', title: 'Safety Champion', desc: 'Keep attendance above 75% target', unlocked: subjects.isNotEmpty && overallPercentage >= 75),
+      Achievement(id: 'hundred', icon: '💯', title: 'Perfect Score', desc: 'Score 100% in any subject CIA or Exam', unlocked: false),
     ];
   }
 
   void _initDefaultLeaveCategories() {
     leaveCategories = [
-      LeaveCategory(name: 'Annual Leave', icon: '🌴', available: 12, used: 3, total: 15),
-      LeaveCategory(name: 'Casual Leave', icon: '☕', available: 6, used: 4, total: 10),
-      LeaveCategory(name: 'Sick Leave', icon: '🩺', available: 5, used: 5, total: 10),
-      LeaveCategory(name: 'Medical Leave', icon: '💊', available: 4, used: 6, total: 10),
+      LeaveCategory(name: 'Annual Leave', icon: '🌴', available: 15, used: 0, total: 15),
+      LeaveCategory(name: 'Casual Leave', icon: '☕', available: 10, used: 0, total: 10),
+      LeaveCategory(name: 'Sick Leave', icon: '🩺', available: 10, used: 0, total: 10),
+      LeaveCategory(name: 'Duty Leave', icon: '💼', available: 10, used: 0, total: 10),
     ];
-  }
-
-  void _initDefaultSquad() {
-    squadGroups = [
-      SquadGroup(
-        id: 'sq_cse_a',
-        code: 'BUNK42',
-        name: 'CSE Backbenchers',
-        icon: '🚀',
-        description: 'Official mass-bunk planning & notes sync for Section A',
-        category: 'Classroom / Batch',
-        themeColorHex: '#22C55E',
-        members: [
-          SquadMember(id: 'me', name: studentName, avatar: studentAvatar, attendancePct: overallPercentage, streak: streakDays, estimatedSGPA: cumulativeGPA, statusMessage: 'In Class 💻'),
-          SquadMember(id: 'm1', name: 'Rohan Sharma', avatar: '🦁', attendancePct: 82, streak: 14, estimatedSGPA: 8.85, statusMessage: 'In DSA Lab 💻'),
-          SquadMember(id: 'm2', name: 'Priya Patel', avatar: '👩‍🔬', attendancePct: 91, streak: 26, estimatedSGPA: 9.40, statusMessage: 'Front row note taker 📚'),
-          SquadMember(id: 'm3', name: 'Kabir Verma', avatar: '🕶️', attendancePct: 76, streak: 4, estimatedSGPA: 7.90, statusMessage: 'Bunking DBMS today 🍕'),
-          SquadMember(id: 'm4', name: 'Sneha Roy', avatar: '🎨', attendancePct: 88, streak: 18, estimatedSGPA: 8.95, statusMessage: 'In Library with assignment ☕'),
-        ],
-        polls: [
-          BunkPoll(
-            id: 'p1',
-            question: 'Mass bunk DBMS 3rd period for Canteen Treat? 🍕',
-            subject: 'DBMS',
-            creator: 'Kabir Verma',
-            bunkVotes: 7,
-            attendVotes: 2,
-          ),
-        ],
-        messages: [
-          ChatMessage(id: 'msg1', senderId: 'm3', senderName: 'Kabir Verma', senderAvatar: '🕶️', text: 'Prof is taking proxy checks in DBMS today, be alert guys!', timestamp: '09:15 AM'),
-          ChatMessage(id: 'msg2', senderId: 'm1', senderName: 'Rohan Sharma', senderAvatar: '🦁', text: 'DSA assignment solutions uploaded to the drive 📑', timestamp: '09:22 AM'),
-          ChatMessage(id: 'msg3', senderId: 'm2', senderName: 'Priya Patel', senderAvatar: '👩‍🔬', text: 'Who wants to study for CIA 2 after lunch?', timestamp: '10:05 AM'),
-        ],
-      ),
-      SquadGroup(
-        id: 'sq_hostel',
-        code: 'HOSTEL7',
-        name: 'Block 4 Warriors',
-        icon: '🍕',
-        description: 'Night outs, gaming sessions & late-night attendance check',
-        category: 'Hostel / Flat',
-        themeColorHex: '#8B5CF6',
-        members: [
-          SquadMember(id: 'me', name: studentName, avatar: studentAvatar, attendancePct: overallPercentage, streak: streakDays, estimatedSGPA: cumulativeGPA, statusMessage: 'Hostel Room 402'),
-          SquadMember(id: 'm1', name: 'Aakash Roy', avatar: '⚡', attendancePct: 78, streak: 8, estimatedSGPA: 8.10, statusMessage: 'Gaming in 405 🎮'),
-          SquadMember(id: 'm2', name: 'Dev Sen', avatar: '🎧', attendancePct: 74, streak: 3, estimatedSGPA: 7.60, statusMessage: 'Sleeping 😴'),
-        ],
-        messages: [
-          ChatMessage(id: 'msg_h1', senderId: 'm1', senderName: 'Aakash Roy', senderAvatar: '⚡', text: 'Anyone awake for FIFA in room 405?', timestamp: 'Yesterday, 11:30 PM'),
-        ],
-      ),
-    ];
-    activeSquadId = 'sq_cse_a';
   }
 
   // ─── Squad & Multi-Room Actions ───────────────────────────────────────────
