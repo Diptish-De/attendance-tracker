@@ -83,11 +83,13 @@ class AttendanceDataStore extends ChangeNotifier {
           final List list = jsonDecode(subjectsJson);
           subjects = list.map((e) => Subject.fromJson(e)).toList();
         } else {
-          subjects = [];
+          _initOfficialRoutineAndSubjects();
+          saveToPreferences();
         }
       } catch (e) {
         debugPrint('Error loading subjects: $e');
-        subjects = [];
+        _initOfficialRoutineAndSubjects();
+        saveToPreferences();
       }
 
       // Safe load: Routine
@@ -96,12 +98,16 @@ class AttendanceDataStore extends ChangeNotifier {
         if (routineJson != null) {
           final List list = jsonDecode(routineJson);
           routine = list.map((e) => RoutineSlot.fromJson(e)).toList();
-        } else {
-          routine = [];
+        } else if (routine.isEmpty) {
+          _initOfficialRoutineSlots();
+          saveToPreferences();
         }
       } catch (e) {
         debugPrint('Error loading routine: $e');
-        routine = [];
+        if (routine.isEmpty) {
+          _initOfficialRoutineSlots();
+          saveToPreferences();
+        }
       }
 
       // Safe load: Marks
@@ -110,12 +116,16 @@ class AttendanceDataStore extends ChangeNotifier {
         if (marksJson != null) {
           final List list = jsonDecode(marksJson);
           marks = list.map((e) => SubjectMarks.fromJson(e)).toList();
-        } else {
-          marks = [];
+        } else if (marks.isEmpty) {
+          _initOfficialMarks();
+          saveToPreferences();
         }
       } catch (e) {
         debugPrint('Error loading marks: $e');
-        marks = [];
+        if (marks.isEmpty) {
+          _initOfficialMarks();
+          saveToPreferences();
+        }
       }
 
       // Safe load: Achievements
@@ -258,6 +268,314 @@ class AttendanceDataStore extends ChangeNotifier {
       LeaveCategory(name: 'Sick Leave', icon: '🩺', available: 10, used: 0, total: 10),
       LeaveCategory(name: 'Duty Leave', icon: '💼', available: 10, used: 0, total: 10),
     ];
+  }
+
+  // ─── Official CSE Semester 5 Routine & Subjects (Odd Sem AY 2025-26) ──────
+  void _initOfficialRoutineAndSubjects() {
+    semester = 'Semester 5';
+    degree = 'B.Tech';
+    course = 'CSE';
+
+    // 10 Official CSE Subjects (5 Theory + 4 Lab + 1 Sessional)
+    subjects = [
+      // Theory Papers
+      Subject(
+        id: 'cse501',
+        name: 'Software Engineering (CSE-501)',
+        icon: '💻',
+        faculty: 'Mrs. Monika Singh',
+        attended: 0,
+        total: 0,
+        minRequiredPercentage: 75,
+      ),
+      Subject(
+        id: 'cse502',
+        name: 'Design & Analysis of Algorithms (CSE-502)',
+        icon: '🧮',
+        faculty: 'Dr. Harinandan Tunga',
+        attended: 0,
+        total: 0,
+        minRequiredPercentage: 75,
+      ),
+      Subject(
+        id: 'cse503',
+        name: 'Computer Network (CSE-503)',
+        icon: '🌐',
+        faculty: 'Mrs. Satabdwi Sarkar',
+        attended: 0,
+        total: 0,
+        minRequiredPercentage: 75,
+      ),
+      Subject(
+        id: 'cse504',
+        name: 'Artificial Intelligence (CSE-504)',
+        icon: '🤖',
+        faculty: 'Sk. Mazharul Islam',
+        attended: 0,
+        total: 0,
+        minRequiredPercentage: 75,
+      ),
+      Subject(
+        id: 'cse505',
+        name: 'Formal Language & Automata Theory (CSE-505)',
+        icon: '⚙️',
+        faculty: 'Mr. Rajib Saha',
+        attended: 0,
+        total: 0,
+        minRequiredPercentage: 75,
+      ),
+
+      // Practical Papers (Labs)
+      Subject(
+        id: 'cse591',
+        name: 'Software Engineering Lab (CSE-591)',
+        icon: '🧪',
+        faculty: 'Mrs. Monika Singh',
+        attended: 0,
+        total: 0,
+        minRequiredPercentage: 75,
+      ),
+      Subject(
+        id: 'cse592',
+        name: 'Design & Analysis of Algorithms Lab (CSE-592)',
+        icon: '🔬',
+        faculty: 'Dr. Harinandan Tunga',
+        attended: 0,
+        total: 0,
+        minRequiredPercentage: 75,
+      ),
+      Subject(
+        id: 'cse593',
+        name: 'Computer Networks Lab (CSE-593)',
+        icon: '📡',
+        faculty: 'Mrs. Satabdwi Sarkar',
+        attended: 0,
+        total: 0,
+        minRequiredPercentage: 75,
+      ),
+      Subject(
+        id: 'cse594',
+        name: 'Artificial Intelligence Lab (CSE-594)',
+        icon: '🧠',
+        faculty: 'Dr. Koushik Mallick',
+        attended: 0,
+        total: 0,
+        minRequiredPercentage: 75,
+      ),
+
+      // Sessional
+      Subject(
+        id: 'cse581',
+        name: 'Seminar Leading to Project (CSE-581)',
+        icon: '📑',
+        faculty: 'Dr. D. Majumdar + Dr. N. Chakraborty + Dr. S. Paul',
+        attended: 0,
+        total: 0,
+        minRequiredPercentage: 75,
+      ),
+    ];
+
+    _initOfficialRoutineSlots();
+    _initOfficialMarks();
+  }
+
+  void _initOfficialRoutineSlots() {
+    routine = [
+      // Monday
+      RoutineSlot(
+        id: 'mon_1',
+        day: 'Monday',
+        subjectName: 'Formal Language & Automata Theory (FLAT)',
+        subjectId: 'cse505',
+        startTime: '11:40 AM',
+        endTime: '12:30 PM',
+        room: 'N308',
+        faculty: 'Mr. Rajib Saha',
+        periodsCount: 1,
+      ),
+      RoutineSlot(
+        id: 'mon_2',
+        day: 'Monday',
+        subjectName: 'Artificial Intelligence',
+        subjectId: 'cse504',
+        startTime: '02:40 PM',
+        endTime: '03:30 PM',
+        room: 'N308',
+        faculty: 'Sk. Mazharul Islam',
+        periodsCount: 1,
+      ),
+
+      // Tuesday
+      RoutineSlot(
+        id: 'tue_1',
+        day: 'Tuesday',
+        subjectName: 'Algorithms Lab (G1) / SE Lab (G2)',
+        subjectId: 'cse592',
+        startTime: '10:00 AM',
+        endTime: '11:40 AM',
+        room: 'N316 / N312B',
+        faculty: 'Dr. Harinandan Tunga / Mrs. Monika Singh',
+        periodsCount: 2,
+      ),
+      RoutineSlot(
+        id: 'tue_2',
+        day: 'Tuesday',
+        subjectName: 'Software Engineering',
+        subjectId: 'cse501',
+        startTime: '01:00 PM',
+        endTime: '01:50 PM',
+        room: 'N308',
+        faculty: 'Mrs. Monika Singh',
+        periodsCount: 1,
+      ),
+      RoutineSlot(
+        id: 'tue_3',
+        day: 'Tuesday',
+        subjectName: 'Artificial Intelligence',
+        subjectId: 'cse504',
+        startTime: '01:50 PM',
+        endTime: '03:30 PM',
+        room: 'N308',
+        faculty: 'Sk. Mazharul Islam',
+        periodsCount: 2,
+      ),
+      RoutineSlot(
+        id: 'tue_4',
+        day: 'Tuesday',
+        subjectName: 'Computer Networks Lab (G1) / AI Lab (G2)',
+        subjectId: 'cse593',
+        startTime: '03:30 PM',
+        endTime: '05:10 PM',
+        room: 'N315 / N317',
+        faculty: 'Mrs. Satabdwi Sarkar / Dr. Koushik Mallick',
+        periodsCount: 2,
+      ),
+
+      // Wednesday
+      RoutineSlot(
+        id: 'wed_1',
+        day: 'Wednesday',
+        subjectName: 'Formal Language & Automata Theory (FLAT)',
+        subjectId: 'cse505',
+        startTime: '10:00 AM',
+        endTime: '11:40 AM',
+        room: 'N308',
+        faculty: 'Mr. Rajib Saha',
+        periodsCount: 2,
+      ),
+      RoutineSlot(
+        id: 'wed_2',
+        day: 'Wednesday',
+        subjectName: 'Design & Analysis of Algorithms',
+        subjectId: 'cse502',
+        startTime: '11:40 AM',
+        endTime: '12:30 PM',
+        room: 'N308',
+        faculty: 'Dr. Harinandan Tunga',
+        periodsCount: 1,
+      ),
+      RoutineSlot(
+        id: 'wed_3',
+        day: 'Wednesday',
+        subjectName: 'Algorithms Lab (G2) / SE Lab (G1)',
+        subjectId: 'cse592',
+        startTime: '01:50 PM',
+        endTime: '03:30 PM',
+        room: 'N316 / N312B',
+        faculty: 'Dr. Harinandan Tunga / Mrs. Monika Singh',
+        periodsCount: 2,
+      ),
+      RoutineSlot(
+        id: 'wed_4',
+        day: 'Wednesday',
+        subjectName: 'Seminar Leading to Project',
+        subjectId: 'cse581',
+        startTime: '03:30 PM',
+        endTime: '05:10 PM',
+        room: 'N308',
+        faculty: 'Dr. D. Majumdar + Dr. N. Chakraborty + Dr. S. Paul',
+        periodsCount: 2,
+      ),
+
+      // Thursday
+      RoutineSlot(
+        id: 'thu_1',
+        day: 'Thursday',
+        subjectName: 'Design & Analysis of Algorithms',
+        subjectId: 'cse502',
+        startTime: '10:50 AM',
+        endTime: '12:30 PM',
+        room: 'N308',
+        faculty: 'Dr. Harinandan Tunga',
+        periodsCount: 2,
+      ),
+      RoutineSlot(
+        id: 'thu_2',
+        day: 'Thursday',
+        subjectName: 'Computer Network',
+        subjectId: 'cse503',
+        startTime: '01:00 PM',
+        endTime: '01:50 PM',
+        room: 'N308',
+        faculty: 'Mrs. Satabdwi Sarkar',
+        periodsCount: 1,
+      ),
+      RoutineSlot(
+        id: 'thu_3',
+        day: 'Thursday',
+        subjectName: 'Software Engineering',
+        subjectId: 'cse501',
+        startTime: '03:30 PM',
+        endTime: '05:10 PM',
+        room: 'N308',
+        faculty: 'Mrs. Monika Singh',
+        periodsCount: 2,
+      ),
+
+      // Friday
+      RoutineSlot(
+        id: 'fri_1',
+        day: 'Friday',
+        subjectName: 'Computer Network',
+        subjectId: 'cse503',
+        startTime: '10:50 AM',
+        endTime: '12:30 PM',
+        room: 'N308',
+        faculty: 'Mrs. Satabdwi Sarkar',
+        periodsCount: 2,
+      ),
+      RoutineSlot(
+        id: 'fri_2',
+        day: 'Friday',
+        subjectName: 'Computer Networks Lab (G2) / AI Lab (G1)',
+        subjectId: 'cse593',
+        startTime: '03:30 PM',
+        endTime: '05:10 PM',
+        room: 'N315 / N317',
+        faculty: 'Mrs. Satabdwi Sarkar / Dr. Koushik Mallick',
+        periodsCount: 2,
+      ),
+    ];
+  }
+
+  void _initOfficialMarks() {
+    marks = subjects.map((s) => SubjectMarks(
+      subjectId: s.id,
+      subjectName: s.name,
+      credits: s.name.contains('Lab') ? 2 : (s.name.contains('Project') ? 3 : 4),
+      assessments: [
+        ExamAssessment(id: 'cia1', name: 'CIA 1', maxMarks: 20),
+        ExamAssessment(id: 'cia2', name: 'CIA 2', maxMarks: 20),
+        ExamAssessment(id: 'cia3', name: 'CIA 3', maxMarks: 20),
+        ExamAssessment(id: 'endsem', name: 'End Sem', maxMarks: 100),
+      ],
+    )).toList();
+  }
+
+  void resetToOfficialRoutine() {
+    _initOfficialRoutineAndSubjects();
+    saveToPreferences();
+    notifyListeners();
   }
 
   // ─── Squad & Multi-Room Actions ───────────────────────────────────────────

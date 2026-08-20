@@ -66,16 +66,32 @@ class _RoutineScreenState extends State<RoutineScreen> {
                       ),
                     ],
                   ),
-                  IconButton(
-                    icon: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        color: AppColors.safeBg,
-                        shape: BoxShape.circle,
+                  Row(
+                    children: [
+                      IconButton(
+                        tooltip: 'Load Official CSE Routine (Sem 5)',
+                        icon: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.refresh_rounded, color: AppColors.textPrimary, size: 20),
+                        ),
+                        onPressed: () => _confirmResetRoutine(context),
                       ),
-                      child: const Icon(Icons.add_rounded, color: AppColors.primary, size: 22),
-                    ),
-                    onPressed: () => _showAddRoutineSlotDialog(context),
+                      IconButton(
+                        icon: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                            color: AppColors.safeBg,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.add_rounded, color: AppColors.primary, size: 22),
+                        ),
+                        onPressed: () => _showAddRoutineSlotDialog(context),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -387,6 +403,38 @@ class _RoutineScreenState extends State<RoutineScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _confirmResetRoutine(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Load Official CSE Timetable? 📅', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+        content: const Text(
+          'This will pre-populate your timetable with the official Odd Semester AY 2025-26 Routine (B.Tech CSE Sem 5, Sec A) including all 10 subjects, room venues (N308, N316, N312B, N315, N317) and faculty details. Any future changes you make will be saved permanently.',
+          style: TextStyle(fontSize: 13, height: 1.4, color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              widget.store.resetToOfficialRoutine();
+              Navigator.pop(ctx);
+              setState(() {});
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Official CSE Sem-5 Routine & Subjects loaded! 🚀'),
+                  backgroundColor: AppColors.safe,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Load Official Routine', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }
